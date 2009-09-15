@@ -1,0 +1,188 @@
+<!-- ###LISTSNIPPETS### -->
+<ul id="snippetmenu">
+    <li>###NEW###</li>
+	<li>###SEARCH###</li>
+</ul>
+<br />	
+	
+<div id="snippets-left">
+	<h2>###HEADER###<span class="browser-results">(###PB_START###-###PB_END### of ###PB_TOTAL###)</span></h2>
+	###SHOWALL###
+	###BROWSE_LINKS###
+	<ul>
+	<!-- ###OROW### -->
+	<li><a href="###HREF###">###ICON###<strong>###TITLE###</strong> [<span class="language">###LANG###</span>]<br />
+	<span class="poster">###POSTER###, ###DATE###</span><span class="rating-comments">Rating: ###TX_RATINGS### ###COMMENTCOUNT###</span></a></li>
+	<!-- ###OROW### -->
+	</ul>
+	
+</div>
+<div id="snippets-right">
+
+	<div class="tagcloud"><p>Tags</p><div>###TAGS###</div></div>
+	<div class="langcloud"><p>Languages</p><ul>###LANGUAGES###</ul></div>
+	<div class="last10cloud"><p>Last 10 Snippets</p><p class="rss">###RSS###</p><ul>
+	<!-- ###ROW### -->
+	<li><a href="###HREF###">###TITLE### [<span class="language">###LANG###</span><span class="poster">###POSTER###, ###DATE###</span>]</a></li>
+	<!-- ###ROW### -->
+	</ul></div>
+</div>
+<br class="clear" />
+
+<!-- ###LISTSNIPPETS### -->
+
+<!-- ###SINGLESNIPPET### -->
+<p>###OVERVIEWLINK###</p>
+<h2>###ICON######TITLE### </h2>
+###TX_RATINGS###
+<p class="snippet-single-userinfo">###USERPIC###<strong>from ###POSTER###</strong> posted at ###DATE###, Language: <strong>###LANGUAGE###</strong></p>
+<div id="snippetlinks">###LINKS###</div>
+<p class="tags">Tags: ###TAGS###</p>
+<div class="codedescription">###DESCRIPTION###</div>
+
+###CODE###
+<div id="pastediv">
+<p><a href="#" onclick="if(document.getElementById('clippyText').style.display=='none'){document.getElementById('clippyText').style.display='block';document.getElementById('txtcopy').focus();document.getElementById('txtcopy').select();}else{document.getElementById('clippyText').style.display='none'}return false;">here is the code in plain for copy&amp;paste</a></p>
+<div id="clippyText" style="display: none;">
+<textarea cols="60" rows="5" id="txtcopy" name="txtcopy">###CODE_PLAIN###</textarea>
+</div>
+</div>
+<!-- ###SINGLESNIPPET### -->
+
+
+<!-- ###NEWSNIPPET### -->
+
+<p>###OVERVIEWLINK###</p>
+###MESSAGE###
+<form action="###ACTION###" method="post">
+<input type="hidden" name="no_cache" value="1" />
+###HIDDEN###
+
+<fieldset>
+<legend>New snippet</legend>
+
+<!-- ###USERINFO### -->
+<label for="poster">Your Name:</label>
+<input type="text" class="txt" size="80" id="poster" name="tx_pastecode_pi1[poster]" value="###POSTER###" /><br />
+<!-- ###USERINFO### -->
+
+<label for="title">Title:</label>
+<input type="text" class="txt" size="80" id="title" name="tx_pastecode_pi1[title]" value="###TITLE###" /><br />
+
+<label for="desc">Description:</label>
+<textarea id="desc" class="txtarea" name="tx_pastecode_pi1[description]" rows="3" cols="60">###DESCRIPTION###</textarea><br />
+
+<label for="tags">Tags:</label>
+<input type="text" class="txt" size="80" id="tags" name="tx_pastecode_pi1[tags]" value="###TAGS###" /><br />
+<label for="seltags" class="checklabel">Select existing tag:</label>
+<select id="seltags" name="seltags">###SELTAGS###</select><br />
+<br />
+<label for="linksgs">###HELP###Links:</label>
+<div id="linkHelp" style="display:none;">
+<strong>use following abbreviations:</strong><br />
+<strong>n</strong>123456 - link to a newslist post with ID 123456<br />
+<strong>b</strong>1234 - link to a mantis bug #1234<br />
+<strong>i</strong>888 - link to a forge issue #888
+</div>
+<input type="text" class="txt" size="80" id="links" name="tx_pastecode_pi1[links]" value="###LINKS###" /><br />
+<br />
+<label for="lang" class="checklabel">Language:</label>
+<select id="lang" name="tx_pastecode_pi1[language]">
+###LANGOPTIONS###
+</select><br />
+<br />
+<input type="checkbox" class="check" id="problem" name="tx_pastecode_pi1[problem]" value="1" ###PROBLEM### />
+<label for="problem" class="checklabel">Code doesn't work or has a problem</label>
+<br />
+
+<label for="snippet">Code:</label>
+<textarea id="snippetsc" class="txtarea" name="tx_pastecode_pi1[snippet]" rows="10" cols="60">###SNIPPET###</textarea><br />
+
+<!--###CAPTCHA### start -->
+<p>
+  <label for="captcha">###L_CAPTCHA###</label>
+  ###CAPTCHAINPUT### ###CAPTCHAPICTURE###
+
+</p>
+<!--###CAPTCHA### end -->
+
+
+
+</fieldset>
+<p class="submitbuttons">
+	<input type="submit" name="tx_pastecode_pi1[preview]" value="preview" />
+	<input type="submit" name="tx_pastecode_pi1[save]" value="save" />
+</p>
+<!-- ###PREVIEW### -->
+<fieldset>
+<legend>Preview</legend>
+<h3>Language: ###LANG###</h3>
+<div id="preview">
+###PREVIEWCODE###
+</div>
+</fieldset>
+<!-- ###PREVIEW### -->
+
+
+
+</form>
+
+
+<!-- ###NEWSNIPPET### -->
+
+
+<!-- ###SEARCHSNIPPET### -->
+<p>###OVERVIEWLINK###</p>
+<form action="###ACTION###" method="post">
+<input type="hidden" name="no_cache" value="1" />
+<fieldset>
+<legend>Search in snippets</legend>
+<label for="search">search for:</label>
+<input type="text" class="txt" size="60" id="search" name="tx_pastecode_pi1[sword]" value="" />&nbsp;
+<input type="submit" name="tx_pastecode_pi1[save]" value="search" />
+</fieldset>
+</form>
+
+<!-- ###RESULTS### -->
+<div id="snippets-left">
+<h2>Search results for "###V_SEARCH###"<span class="browser-results">(###PB_START###-###PB_END### of ###PB_TOTAL###)</span></h2>
+###BROWSE_LINKS###
+<ul>
+	<!-- ###ROW### -->
+	<li><a href="###HREF###">###ICON###<strong>###TITLE###</strong> [<span class="language">###LANG###</span><span class="poster">###POSTER###, ###DATE###</span>]</a></li>
+	<!-- ###ROW### -->
+</ul>
+</div>
+<br class="clear" />
+<!-- ###RESULTS### -->
+<!-- ###SEARCHSNIPPET### -->
+
+
+
+
+<!-- ###RSSFEED### -->
+<rss version="2.0">
+	<channel>
+		<title>###SITE_TITLE###</title>
+		<link>###SITE_LINK###</link>
+		<description>###SITE_DESCRIPTION###</description>
+		
+		<generator>TYPO3 - get.content.right</generator>
+		<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+		<copyright>###NEWS_COPYRIGHT###</copyright>
+		<webMaster>###NEWS_WEBMASTER###</webMaster>
+		<lastBuildDate>###NEWS_LASTBUILD###</lastBuildDate>
+		
+		<!-- ###CONTENT### -->
+		<item>
+			<title>[###LANG###] ###TITLE###</title>
+			<link>###BASEURL######HREFRSS###</link>
+			<description>###DESCRIPTION###</description>
+			<category>###LANG###</category>
+			<author>###POSTER###</author>
+			<pubDate>###DATE###</pubDate>
+		</item>
+		<!-- ###CONTENT### -->
+	</channel>
+</rss>
+<!-- ###RSSFEED### -->

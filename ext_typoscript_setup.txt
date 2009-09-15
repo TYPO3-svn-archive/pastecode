@@ -1,0 +1,109 @@
+plugin.tx_pastecode_pi1 {
+	
+	_CSS_DEFAULT_STYLE (
+ul#snippetmenu {
+
+}
+
+#snippets-left {
+	float:left;
+	width: 400px;
+}
+
+#snippets-left ul {
+	margin-left: 16px;
+}
+
+#snippets-left ul li {
+	padding: 0 1px;
+}
+
+#snippets-right {
+	float:right;
+	width:200px;
+}
+
+.clear {
+	clear: all;
+}
+
+.tagcloud, .langcloud, .last10cloud {
+	margin: 10px;
+	border: 1px solid #000;
+}
+.tagcloud p, .langcloud p, .last10cloud p {
+	background-color: #ddd !important;
+	text-align: center !important;
+	padding:2px;
+	margin: 0 0 5px 0 !important;
+}
+.tagcloud div {
+	padding:4px;
+}
+.langcloud ul {
+	margin-left: 16px;
+}
+.langcloud ul li {
+	padding: 0 1px;
+}
+.last10cloud ul {
+	margin-left: 16px;
+}
+.last10cloud ul li {
+	padding: 0 1px;
+}
+
+
+span.tag-1 {
+	font-size: 10px;
+}
+span.tag-2 {
+	font-size: 11px;
+}
+span.tag-3 {
+	font-size: 12px;
+}
+span.tag-4 {
+	font-size: 13px;
+}
+span.tag-5 {
+    font-size: 14px;
+}
+span.tag-6 {
+    font-size: 15px;
+}
+span.tag-7 {
+	font-size: 16px;
+}
+
+a span.language {
+	color: blue;
+	padding: 0 3px;
+}
+a span.poster {
+	color: orange;
+	padding: 0 3px;
+}
+
+	)
+	
+}
+
+snippetRSS = PAGE
+snippetRSS {
+  typeNum = 112
+  config.no_cache = 1
+  10 < plugin.tx_pastecode_pi1
+  10.code >
+  10.code = rss
+  10.siteUrl = http://support.typo3.org/
+  10.pid = 130
+  10.storagePid = 23
+  
+  config {
+    disableAllHeaderCode = 1
+    additionalHeaders = Content-type:application/xml
+    xhtml_cleaning = 0
+    admPanel = 0
+  }
+}
