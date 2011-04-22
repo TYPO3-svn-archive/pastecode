@@ -10,14 +10,16 @@ t3lib_extMgm::addToInsertRecords('tx_pastecode_code');
 
 $TCA['tx_pastecode_code'] = array (
 	'ctrl' => array (
-		'title'     => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code',		
-		'label'     => 'title',	
+		'title'     => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code',
+		'label'     => 'title',
+		'label_alt' => 'language,poster',
+		'label_alt_force' => TRUE,
 		'tstamp'    => 'tstamp',
 		'crdate'    => 'crdate',
 		'cruser_id' => 'cruser_id',
-		'default_sortby' => "ORDER BY crdate",	
-		'delete' => 'deleted',	
-		'enablecolumns' => array (		
+		'default_sortby' => "ORDER BY crdate",
+		'delete' => 'deleted',
+		'enablecolumns' => array (
 			'disabled' => 'hidden',
 		),
 		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tca.php',

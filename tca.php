@@ -8,7 +8,7 @@ $TCA['tx_pastecode_code'] = array (
 	),
 	'feInterface' => $TCA['tx_pastecode_code']['feInterface'],
 	'columns' => array (
-		'hidden' => array (		
+		'hidden' => array (
 			'exclude' => 1,
 			'label'   => 'LLL:EXT:lang/locallang_general.xml:LGL.hidden',
 			'config'  => array (
@@ -16,67 +16,67 @@ $TCA['tx_pastecode_code'] = array (
 				'default' => '0'
 			)
 		),
-		'title' => array (		
-			'exclude' => 0,		
-			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.title',		
+		'title' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.title',
 			'config' => array (
-				'type' => 'input',	
+				'type' => 'input',
 				'size' => '30',
 			)
 		),
-		'language' => array (		
-			'exclude' => 0,		
-			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.language',		
+		'language' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.language',
 			'config' => array (
-				'type' => 'input',	
+				'type' => 'input',
 				'size' => '30',
 			)
 		),
-		'poster' => array (		
-			'exclude' => 0,		
-			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.poster',		
+		'poster' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.poster',
 			'config' => array (
-				'type' => 'input',	
+				'type' => 'input',
 				'size' => '30',
 			)
 		),
-		'description' => array (       
-            'exclude' => 0,     
-            'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.description',     
+		'description' => array (
+            'exclude' => 0,
+            'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.description',
             'config' => array (
                 'type' => 'text',
-                'cols' => '30', 
+                'cols' => '30',
                 'rows' => '5',
             )
         ),
-        'code' => array (		
-			'exclude' => 0,		
-			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.code',		
+        'code' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.code',
 			'config' => array (
 				'type' => 'text',
-				'cols' => '30',	
+				'cols' => '30',
 				'rows' => '5',
 			)
 		),
-		'tags' => array (       
-            'exclude' => 0,     
-            'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.tags',     
+		'tags' => array (
+            'exclude' => 0,
+            'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.tags',
             'config' => array (
                 'type' => 'text',
-                'cols' => '30', 
+                'cols' => '30',
                 'rows' => '5',
             )
         ),
-        'problem' => array (		
-			'exclude' => 0,		
-			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.problem',		
+        'problem' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.problem',
 			'config' => array (
 				'type' => 'check',
 			)
 		),
-		'links' => array (       
-            'exclude' => 0,     
-            'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.links',     
+		'links' => array (
+            'exclude' => 0,
+            'label' => 'LLL:EXT:pastecode/locallang_db.xml:tx_pastecode_code.links',
             'config' => array (
                 'type' => 'input',
             )
