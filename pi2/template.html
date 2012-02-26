@@ -1,0 +1,77 @@
+<!-- ###NEWSNIPPET### -->
+<h2>###HEADER###</h2>
+<p><a href="###OVERVIEW_URL###">###LL_BACK###</a></p>
+<!-- ###PREVIEW### -->
+<fieldset>
+	<legend>###LL_PREVIEW###</legend>
+	<div>###PREVIEWCODE###</div>
+</fieldset>
+<!-- ###PREVIEW### -->
+<form action="###ACTION###" method="post" class="snippet-new">
+	###HIDDEN###
+	<fieldset>
+		<legend>###HEADER###</legend>
+		###MESSAGE###
+		<!-- ###USERINFO### -->
+		<div class="snippet-row snippet-poster">
+			<label for="snippet-poster">###LL_NAME###:</label>
+			<input type="text" name="tx_pastecode_pi2[poster]" value="###POSTER###" id="snippet-poster" />
+		</div>
+		<!-- ###USERINFO### -->
+		<div class="snippet-row snippet-title">
+			<label for="snippet-title">###LL_TITLE###:</label>
+			<input type="text" name="tx_pastecode_pi2[title]" value="###TITLE###" id="snippet-title" />
+		</div>
+		<div class="snippet-row snippet-description">
+			<label for="snippet-description">###LL_DESCRIPTION###:</label>
+			<textarea name="tx_pastecode_pi2[description]" id="snippet-description">###DESCRIPTION###</textarea>
+		</div>
+		<div class="snippet-row snippet-tags">
+			<label for="snippet-tags">###LL_TAGS###:</label>
+			<input type="text" name="tx_pastecode_pi2[tags]" value="###TAGS###" id="snippet-tags" />
+			<br />
+			<label for="snippet-selectedtags">###LL_SELECT_TAGS###:</label>
+			<select id="snippet-selectedtags">###SELTAGS###</select>
+			<script type="text/javascript">
+			function addTag(p_string) {
+				t_tag_separator = ",";
+				t_tag_string = document.getElementById("snippet-tags");
+				t_tag_select = document.getElementById("snippet-selectedtags");
+				if(t_tag_string.value != "") {
+					t_tag_string.value = t_tag_string.value + t_tag_separator + p_string;
+				} else {
+					t_tag_string.value = t_tag_string.value + p_string;
+				}
+				t_tag_select.selectedIndex = 0;
+			}
+			</script>
+		</div>
+		<div class="snippet-row snippet-links">
+			<label for="snippet-links">###LL_LINKS###:</label>
+			<input type="text" name="tx_pastecode_pi2[links]" value="###LINKS###" id="snippet-links" />
+			<p>###LL_LINKS_HELP###</p>
+		</div>
+		<div class="snippet-row snippet-language">
+			<label for="snippet-language">###LL_LANGUAGE###:</label>
+			<select name="tx_pastecode_pi2[language]" id="snippet-language">###LANGOPTIONS###</select>
+		</div>
+		<div class="snippet-row snippet-problem">
+			<input type="checkbox" name="tx_pastecode_pi2[problem]" value="1"###PROBLEM_CHECKED### id="snippet-problem" />
+			<label for="snippet-problem">###LL_PROBLEM###</label>
+		</div>
+		<div class="snippet-row snippet-code">
+			<label for="snippet-code">###LL_CODE###:</label>
+			<textarea name="tx_pastecode_pi2[snippet]" id="snippet-code">###SNIPPET###</textarea>
+		</div>
+		<!--###CAPTCHA### start -->
+		<div class="snippet-row snippet-captcha">
+			<label for="snippet-aptcha">###LL_CAPTCHA###</label>
+			###CAPTCHAPICTURE###<br />
+			<input type="text" id="snippet-captcha" name="tx_pastecode_pi2[captchaResponse]" value="" />
+		</div>
+		<!--###CAPTCHA### end -->
+		<input type="submit" name="tx_pastecode_pi2[preview]" value="###LL_PREVIEW###" />
+		<input type="submit" name="tx_pastecode_pi2[save]" value="###LL_SAVE###" />
+	</fieldset>
+</form>
+<!-- ###NEWSNIPPET### -->

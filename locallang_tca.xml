@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for pastecode plugin</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="sheetGeneral">General settings</label>
+			<label index="displayMode">Display</label>
+			<label index="displayMode.snippets">Snippet list</label>
+			<label index="displayMode.tagcloud">Tagcloud</label>
+			<label index="displayMode.languages">Languages</label>
+			<label index="displayMode.last">Last snippets</label>
+			<label index="displayMode.search">Search</label>
+		</languageKey>
+	</data>
+</T3locallang>

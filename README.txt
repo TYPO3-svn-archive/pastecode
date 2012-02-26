@@ -1,2 +1,2 @@
-
-Feel free to add some documentation or simply add a link to the online manual.
+1) Search: If you use view "search", you have to provide a view "snippets" on this page to display the search results
+2) ...

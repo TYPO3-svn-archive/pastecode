@@ -1,0 +1,62 @@
+plugin.tx_pastecode_pi1 {
+	general {
+		templateFile = {$plugin.tx_pastecode_pi1.general.templateFile}
+		snippetPid = {$plugin.tx_pastecode_pi1.general.snippetPid}
+		newsnippetPid = {$plugin.tx_pastecode_pi1.general.newsnippetPid}
+		displayMode = {$plugin.tx_pastecode_pi1.general.displayMode}
+		languages = {$plugin.tx_pastecode_pi1.general.languages}
+		browsertitle_stdWrap.noTrimWrap = |{page:title}: ||
+		browsertitle_stdWrap.insertData = 1
+		newsnippet_stdWrap.wrap = <p>|</p>
+		editsnippet_stdWrap.wrap = <p>|</p>
+		showall_stdWrap.wrap = <p>|</p>
+	}
+	snippets {
+		pagebrowse < plugin.tx_pagebrowse_pi1
+		limit = {$plugin.tx_pastecode_pi1.snippets.limit}
+		linkLanguage = {$plugin.tx_pastecode_pi1.snippets.linkLanguage}
+	}
+	single {
+		pathToZeroClipboardJS = {$plugin.tx_pastecode_pi1.single.pathToZeroClipboardJS}
+		pathToZeroClipboardSWF = {$plugin.tx_pastecode_pi1.single.pathToZeroClipboardSWF}
+	}
+	tagcloud {
+		tagsMax = {$plugin.tx_pastecode_pi1.tagcloud.tagsMax}
+		tagsMinCount = {$plugin.tx_pastecode_pi1.tagcloud.tagsMinCount}
+		maxSize = {$plugin.tx_pastecode_pi1.tagcloud.maxSize}
+		sizeReverse = {$plugin.tx_pastecode_pi1.tagcloud.sizeReverse}
+	}
+
+	_CSS_DEFAULT_STYLE (
+#d_clip_container {
+	position: relative;
+}
+#d_clip_text {
+	display: none;
+}
+)
+}
+
+# Prevent caching on searching snippets
+[globalVar = GP:tx_pastecode_pi1|search > 0]
+plugin.tx_pastecode_pi1 = USER_INT
+[global]
+
+snippetRSS = PAGE
+snippetRSS {
+	typeNum = 112
+	config.no_cache = 1
+	10 < plugin.tx_pastecode_pi1
+	10.code >
+	10.code = rss
+	10.siteUrl = http://support.typo3.org/
+	10.pid = 130
+	10.storagePid = 23
+
+	config {
+		disableAllHeaderCode = 1
+		additionalHeaders = Content-type:application/xml
+		xhtml_cleaning = 0
+		admPanel = 0
+	}
+}

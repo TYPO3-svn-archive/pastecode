@@ -6,11 +6,32 @@
 	</meta>
 	<data type="array">
 		<languageKey index="default" type="array">
-			<label index="list_mode_1">Mode 1</label>
-			<label index="list_mode_2">Mode 2</label>
-			<label index="list_mode_3">Mode 3</label>
-			<label index="back">Back</label>
-			<label index="submit_button_label">Click here to submit value</label>
+			<label index="snippets">Snippets</label>
+			<label index="header_snippets_with_tag">Snippets with tag "%s"</label>
+			<label index="header_snippets_from_author">Snippets by "%s"</label>
+			<label index="header_snippets_language">Snippets language "%s"</label>
+			<label index="header_snippets_search_for">Search results for "%s"</label>
+			<label index="header_snippets_search_and_language">Search results for "%s", category "%s"</label>
+			<label index="name">Name</label>
+			<label index="category">Category</label>
+			<label index="author">Author</label>
+			<label index="date">Date</label>
+			<label index="tags">Tags</label>
+			<label index="links">Links</label>
+			<label index="language">Language</label>
+			<label index="description">Description</label>
+			<label index="author_snippets">Author snippets</label>
+			<label index="author_snippets_count">%s snippets</label>
+			<label index="copy to clipboard">Copy to Clipboard</label>
+			<label index="search_options">Search options</label>
+			<label index="search">Search</label>
+			<label index="search submit">Filter</label>
+			<label index="search reset">Reset</label>
+			<label index="new snippet">Create new snippet</label>
+			<label index="edit snippet">Edit snippet</label>
+			<label index="clear filters">Clear all filters</label>
+			<label index="back">Back to overview</label>
+			<label index="back to author list">Back to author list</label>
 		</languageKey>
 	</data>
 </T3locallang>

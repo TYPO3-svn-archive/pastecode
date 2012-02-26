@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>module</type>
+		<description>Language labels for plugin &quot;tx_pastecode_pi2&quot;</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="new snippet">Create new snippet</label>
+			<label index="edit snippet">Edit snippet</label>
+			<label index="name">Your name</label>
+			<label index="title">Title</label>
+			<label index="description">Description</label>
+			<label index="tags">Tags</label>
+			<label index="select_tags">Select existing tag</label>
+			<label index="links">Links</label>
+			<label index="links_help">Separate links with comma and use following abbreviations:&lt;br /&gt;&lt;b&gt;b&lt;/b&gt;1234 - link to a mantis bug #1234&lt;br /&gt;&lt;b&gt;i&lt;/b&gt;888 - link to a forge issue #888</label>
+			<label index="language">Language</label>
+			<label index="problem">Code doesn't work or has a problem</label>
+			<label index="code">Code</label>
+			<label index="captcha">Captcha</label>
+			<label index="preview">Preview</label>
+			<label index="save">Save</label>
+			<label index="back">Back to overview</label>
+			<label index="error_length">&lt;b&gt;Text too short&lt;/b&gt;&lt;br /&gt;The value you typed in for the title or the snippet code is too short. Please provide more text.</label>
+			<label index="error_captcha">&lt;b&gt;Captcha error&lt;/b&gt;&lt;br /&gt;The code you typed in was wrong.</label>
+		</languageKey>
+	</data>
+</T3locallang>

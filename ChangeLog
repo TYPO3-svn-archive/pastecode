@@ -1,3 +1,16 @@
-2008-06-21 Steffen Kamper  <info@sk-typo3.de>
+2011-10-01 Sven Burkert <bedienung@sbtheke.de>
+	* Set browser title in snippet detail view
 
+2011-09-15 Sven Burkert <bedienung@sbtheke.de>
+	* new configuration options: output only defined amount of tags, size for tags and more
+	* new calculation or size of tags
+	* FlexForm for plugin, separate views
+	* Pagebrowser with ext. "pagebrowse"
+	* Remove icons (now CSS class is provided, so use background images)
+	* Remove language labels from template into locallang file
+	* Use new solution for "Copy to clipboard", see http://code.google.com/p/zeroclipboard/
+	* Created new plugin pi2, because of caching
+	* clean up
+
+2008-06-21 Steffen Kamper <info@sk-typo3.de>
 	* initial code generated with kickstarter

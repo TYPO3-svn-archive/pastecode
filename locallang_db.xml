@@ -7,12 +7,16 @@
 	<data type="array">
 		<languageKey index="default" type="array">
 			<label index="tx_pastecode_code">Code</label>
-			<label index="tx_pastecode_code.title">title</label>
-			<label index="tx_pastecode_code.language">language</label>
-			<label index="tx_pastecode_code.poster">poster</label>
-			<label index="tx_pastecode_code.code">code</label>
-			<label index="tx_pastecode_code.tags">tags</label>
-			<label index="tt_content.list_type_pi1">Snippets</label>
+			<label index="tx_pastecode_code.title">Title:</label>
+			<label index="tx_pastecode_code.description">Description:</label>
+			<label index="tx_pastecode_code.language">Language:</label>
+			<label index="tx_pastecode_code.poster">Poster:</label>
+			<label index="tx_pastecode_code.links">Links:</label>
+			<label index="tx_pastecode_code.problem">Code doesn't work or has a problem:</label>
+			<label index="tx_pastecode_code.code">Code:</label>
+			<label index="tx_pastecode_code.tags">Tags:</label>
+			<label index="tt_content.list_type_pi1">Snippets (list, tagcloud and more)</label>
+			<label index="tt_content.list_type_pi2">Create new snippet</label>
 		</languageKey>
 	</data>
 </T3locallang>

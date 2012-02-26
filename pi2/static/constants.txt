@@ -1,0 +1,10 @@
+plugin.tx_pastecode_pi2 {
+	general {
+		# cat=plugin_pastecode/general/10; type=string; label=Template:Location of the template file
+		templateFile = EXT:pastecode/pi2/template.html
+		# cat=plugin_pastecode/general/30; type=int+; label=Page ID:ID of page where to link to (in tagcloud, search, ...)
+		snippetPid =
+		# cat=plugin_pastecode/general/40; type=int+; label=Page ID (create snippet):ID of page where a new snippet can be created
+		newsnippetPid =
+	}
+}

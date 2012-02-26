@@ -3,6 +3,7 @@
  *  Copyright notice
  *
  *  (c) 2008 Steffen Kamper <info@sk-typo3.de>
+ *  (c) 2011 Sven Burkert <bedienung@sbtheke.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +30,8 @@
 
 require_once(PATH_tslib . 'class.tslib_pibase.php');
 require_once(t3lib_extMgm::siteRelPath('geshilib') . 'res/geshi.php');
-if (t3lib_extMgm::isLoaded('ratings')) {
+require_once(t3lib_extMgm::extPath('pastecode', 'pi2/class.tx_pastecode_pi2.php'));
+if(t3lib_extMgm::isLoaded('ratings')) {
 	require_once(t3lib_extMgm::extPath('ratings', 'class.tx_ratings_api.php'));
 }
 
@@ -40,17 +42,20 @@ if (t3lib_extMgm::isLoaded('ratings')) {
  * @package	TYPO3
  * @subpackage	tx_pastecode
  */
-class tx_pastecode_pi1 extends tslib_pibase
-{
+class tx_pastecode_pi1 extends tslib_pibase {
 	var $prefixId = 'tx_pastecode_pi1'; // Same as class name
 	var $scriptRelPath = 'pi1/class.tx_pastecode_pi1.php'; // Path to this script relative to the extension dir.
 	var $extKey = 'pastecode'; // The extension key.
-	var $pi_checkCHash = true;
-	var $languages = array('--div--;Common', 'php', 'typoscript', 'javascript', 'html4strict', 'sql', 'xml', 'diff', '--div--;other', 'actionscript', 'ada', 'apache', 'applescript', 'asm', 'asp', 'bash', 'blitzbasic', 'c', 'c_mac', 'caddcl', 'cadlisp', 'cpp', 'csharp', 'css', 'd', 'delphi', 'div', 'dos', 'eiffel', 'freebasic', 'gml', 'ini', 'java', 'lisp', 'lua', 'matlab', 'mpasm', 'mysql', 'nsis', 'objc', 'ocaml', 'ocaml-brief', 'oobas', 'oracle8', 'pascal', 'perl', 'php-brief', 'python', 'qbasic', 'ruby', 'scheme', 'sqlbasic', 'smarty', 'vb', 'vbnet', 'vhdl', 'visualfoxpro');
 	var $storagePid;
 	var $pid;
-	var $icon;
 
+	/**
+	 * Init function, mainly to be called from other extensions to use the functions from this extension
+	 */
+	/*function init() {
+		$this->pi_setPiVarDefaults();
+		$this->pi_loadLL();
+	}*/
 
 	/**
 	 * The main method of the PlugIn
@@ -59,30 +64,40 @@ class tx_pastecode_pi1 extends tslib_pibase
 	 * @param	array		$conf: The PlugIn configuration
 	 * @return	The content that is displayed on the website
 	 */
-	function main($content, $conf)
-	{
+	function main($content, $conf) {
 		$this->conf = $conf;
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 
+		if(!$this->piVars['search']) {
+			$this->pi_checkCHash = true;
+		}
 
+		// Flexform config
+		$this->pi_initPIflexForm();
+		// enables flexform values in $conf
+		if(is_array($this->cObj->data['pi_flexform']['data'])) { // if there are flexform values
+			foreach($this->cObj->data['pi_flexform']['data'] as $key => $value) { // every flexform category
+				if(count($this->cObj->data['pi_flexform']['data'][$key]['lDEF']) > 0) { // if there are flexform values
+					foreach($this->cObj->data['pi_flexform']['data'][$key]['lDEF'] as $key2 => $value2) { // every flexform option
+						if($this->pi_getFFvalue($this->cObj->data['pi_flexform'], $key2, $key)) { // if value exists in flexform
+							$this->conf[$key . '.'][$key2] = $this->pi_getFFvalue($this->cObj->data['pi_flexform'], $key2, $key); // overwrite $this->conf
+						}
+					}
+				}
+			}
+		}
+
+		$this->pastecodePi2 = t3lib_div::makeInstance('tx_pastecode_pi2');
 		$this->storagePid = intval($this->cObj->data['pages']);
 		$this->pid = $GLOBALS['TSFE']->id;
 		$this->type = $GLOBALS['TSFE']->type;
 
-		$tmpl = $this->conf['templateFile'] ? $this->conf['templateFile'] : 'EXT:pastecode/res/template.html';
-		$this->template = $this->cObj->fileResource($tmpl);
-
-		$this->icon['ok'] = '<img class="icon" src="' . t3lib_extMgm::siteRelPath('pastecode') . 'res/ok.png" width="12" height="12" title="working snippet" alt="ok" />';
-		$this->icon['problem'] = '<img class="icon" src="' . t3lib_extMgm::siteRelPath('pastecode') . 'res/bug.png" width="12" height="12" title="snippet has a problem" alt="bug" />';
-		$this->icon['help'] = '<img class="icon" src="' . t3lib_extMgm::siteRelPath('pastecode') . 'res/help.gif" width="16" height="16" alt="help" />';
-		$this->icon['rss'] = '<img class="icon" src="' . t3lib_extMgm::siteRelPath('pastecode') . 'res/rss.gif" width="16" height="16" alt="RSS-feed" />';
-		$this->icon['edit'] = '<img class="icon" src="typo3/sysext/t3skin/icons/gfx/edit2.gif" width="16" height="16" alt="edit snippet" />';
+		$this->template = $this->cObj->fileResource($this->conf['general.']['templateFile']);
 
 		if (t3lib_extMgm::isLoaded('ratings')) {
 			$this->ratings = t3lib_div::makeInstance('tx_ratings_api');
 		}
-
 
 		// RSS
 		if ($this->type == 112) {
@@ -90,518 +105,293 @@ class tx_pastecode_pi1 extends tslib_pibase
 			$this->storagePid = intval($this->conf['storagePid']);
 			return $this->rssView();
 		}
-		if (intval($this->conf['pageBrowser.']['results']) == 0) {
-			$this->conf['pageBrowser.']['results'] = 30;
-		}
-		if ($this->piVars['search']) {
-			$content = $this->searchView();
-		} elseif ($this->piVars['code']) {
-			$content = $this->singleView($this->piVars['code']);
-		} elseif ($this->piVars['new'] || $this->piVars['edit']) {
-			$content = $this->newCode();
-		} elseif ($this->conf['authorlist']) {
-			$content = $this->authorList();
-		} else {
-			$content = $this->overView();
-		}
+		switch($this->conf['general.']['displayMode']) {
+			case 'snippets':
+			default:
+				if($this->piVars['code']) {
+					$content = $this->singleView($this->piVars['code']);
+				} elseif($this->conf['authorlist']) {
+					$content = $this->authorList();
+				} else {
+					$content = $this->overView();
+				}
+			break;
+			case 'tagcloud':
+				$content = $this->tagCloud();
+			break;
+			case 'languages':
+				$content = $this->langCloud();
+			break;
+			case 'last':
 
-
+			break;
+			case 'search':
+				$content = $this->searchView();
+			break;
+		}
 		return $this->pi_wrapInBaseClass($content);
 	}
 
-	function searchView()
-	{
-
+	/**
+	 * Search form
+	 *
+	 * @return string: HTML code
+	 */
+	function searchView() {
 		$totalSubpart = $this->cObj->getSubpart($this->template, '###SEARCHSNIPPET###');
 		$resultSubpart = $this->cObj->getSubpart($totalSubpart, '###RESULTS###');
 		$rowSubpart = $this->cObj->getSubpart($resultSubpart, '###ROW###');
 
-		$marker['###ACTION###'] = $this->pi_getPageLink($GLOBALS['TSFE']->id, '', array($this->prefixId . '[search]' => 1));
-		$subpart['###RESULTS###'] = '';
-		$marker['###OVERVIEWLINK###'] = $this->pi_linkTP('&lt;&lt: back to overview', array(), 1);
+		$marker['###ACTION###'] = $this->pi_getPageLink($this->conf['general.']['snippetPid']);
+		$marker['###LANGOPTIONS###'] = $this->languageSelect($this);
 
 		$sword = addslashes(str_replace("'", '', $this->piVars['sword']));
 		$marker['###V_SEARCH###'] = htmlspecialchars($this->piVars['sword']);
 
-		if ($sword == '') {
-			return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
-		}
-		$addWhere = '(title LIKE "%' . $GLOBALS['TYPO3_DB']->escapeStrForLike($sword, 'tx_pastecode_code') . '%"';
-		$addWhere .= ' OR description LIKE "%' . $GLOBALS['TYPO3_DB']->escapeStrForLike($sword, 'tx_pastecode_code') . '%")';
+		// language keys
+		$marker += $this->prepareLLArray('EXT:pastecode/pi1/locallang.xml', $this);
 
-
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-			'count(*)',
-			'tx_pastecode_code',
-			$addWhere . $this->cObj->enableFields('tx_pastecode_code'),
-			'',
-			'',
-			''
-		);
-
-		$row = $GLOBALS['TYPO3_DB']->sql_fetch_row($res);
-		$count = $row[0];
-		$marker['###PB_TOTAL###'] = $count;
-
-		if ($count == 0) {
-			return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
-		}
-
-		// prepare pagebrowser
-		$pbConf = $this->conf['pageBrowser.'];
-		$pbConf['maxPages'] = 10;
-
-		$this->pi_alwaysPrev = $pbConf['alwaysPrev'];
-
-		$this->internal['res_count'] = $count;
-		$this->internal['results_at_a_time'] = $pbConf['results'];
-		$this->internal['maxPages'] = 6;
-
-		$wrapArrFields = explode(',', 'disabledLinkWrap,inactiveLinkWrap,activeLinkWrap,browseLinksWrap,showResultsWrap,showResultsNumbersWrap,browseBoxWrap');
-		$wrapArr = array();
-		foreach ($wrapArrFields as $key) {
-			if ($pbConf[$key]) {
-				$wrapArr[$key] = $pbConf[$key];
-			}
-		}
-
-		// render pagebrowser
-		$marker['###BROWSE_LINKS###'] = $this->pi_list_browseresults(
-			0,
-			$pbConf['tableParams'],
-			$wrapArr,
-			'pointer',
-			true);
-
-
-		$marker['###PB_START###'] = intval($this->piVars['pointer']) * $pbConf['results'] + 1;
-		$marker['###PB_END###'] = $marker['###PB_START'] + $pbConf['results'] < $count
-				? $marker['###PB_START'] + $pbConf['results'] : $count;
-
-
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-			'*',
-			'tx_pastecode_code',
-			$where_clause = $addWhere . $this->cObj->enableFields('tx_pastecode_code'),
-			$groupBy = '',
-			$orderBy = '',
-			$limit = intval($this->piVars['pointer']) * $pbConf['results'] . ',' . $pbConf['results']
-		);
-		$rows = '';
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-
-			$l = $this->pi_linkTP('',
-								  array(
-									   $this->prefixId . '[code]' => $row['uid'],
-								  ), 1, $this->conf['snippetPid']
-			);
-			$marker['###HREF###'] = $this->cObj->lastTypoLinkUrl;
-
-			$marker['###ICON###'] = $row['problem'] ? $this->icon['problem'] : $this->icon['ok'];
-			$marker['###TITLE###'] = $row['title'];
-			$marker['###POSTER###'] = $row['poster'];
-			$marker['###DATE###'] = date('Y-m-d', $row['crdate']);
-			$marker['###LANG###'] = $row['language'];
-			$this->markerHook($marker, $row);
-			$rows .= $this->cObj->substituteMarkerArrayCached($rowSubpart, $marker);
-		}
-		$subpart['###ROW###'] = $rows;
-		$subpart['###RESULTS###'] = $this->cObj->substituteMarkerArrayCached($resultSubpart, $marker, $subpart);
-		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
+		$this->markerHook($marker);
+		return $this->cObj->substituteMarkerArray($totalSubpart, $marker);
 	}
 
-	function singleView($id)
-	{
-		if (intval($id) == 0) {
+	function singleView($id) {
+		if(intval($id) == 0) {
 			return '';
 		}
 
 		$totalSubpart = $this->cObj->getSubpart($this->template, '###SINGLESNIPPET###');
 
-
-		$marker['###OVERVIEWLINK###'] = $this->pi_linkTP('&lt;&lt: back to overview', array(), 1);
+		$marker['###OVERVIEW_URL###'] = $this->pi_getPageLink($this->conf['general.']['snippetPid']);
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'*',
 			'tx_pastecode_code',
-			$where_clause = 'uid=' . intval($id) . $this->cObj->enableFields('tx_pastecode_code'),
-			$groupBy = '',
-			$orderBy = '',
-			$limit = ''
+			'uid = ' . intval($id) . $this->cObj->enableFields('tx_pastecode_code')
 		);
+		$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 
-		if ($res) {
-			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-			$marker['###ICON###'] = $row['problem'] ? $this->icon['problem'] : $this->icon['ok'];
-			$marker['###CODE###'] = $this->highLight($row['code'], $row['language']);
-			$marker['###CODE_PLAIN###'] = $row['code'];
-			$marker['###POSTER###'] = htmlspecialchars($row['poster']);
-			$marker['###TITLE###'] = htmlspecialchars($row['title']);
-			$marker['###DESCRIPTION###'] = nl2br(htmlspecialchars($row['description']));
-			$marker['###DATE###'] = date('Y-m-d', $row['crdate']);
-			$GLOBALS['TSFE']->ATagParams = 'title = "edit snippet"';
-			$marker['###EDIT###'] = $GLOBALS['TSFE']->fe_user->user['name'] == $row['poster'] ?
-					$this->pi_linkTP($this->icon['edit'], array(
-															   $this->prefixId . '[edit]' => $row['uid']
-														  ), false) :
-					'';
+		// set browser title
+		$GLOBALS['TSFE']->page['title'] = $this->cObj->stdWrap($row['title'], $this->conf['general.']['browsertitle_stdWrap.']);
 
-			$GLOBALS['TSFE']->ATagParams = 'title="show all snippets of language ' . $row['language'] . '"';
-			$marker['###LANGUAGE###'] = $this->pi_linkTP($row['language'], array(
-																				$this->prefixId . '[language]' => urlencode($row['language']),
-																		   ), 1);
-			$GLOBALS['TSFE']->ATagParams = '';
-			$marker['###TAGS###'] = '';
-			if ($row['tags']) {
-				$tags = t3lib_div::trimExplode(',', $row['tags']);
-				foreach ($tags as $tag) {
-					$t[] = $this->pi_linkTP(htmlspecialchars($tag), array(
-																		 $this->prefixId . '[tag]' => urlencode($tag),
-																	), 1);
-				}
-				$marker['###TAGS###'] = implode(', ', $t);
-			}
-			$marker['###LINKS###'] = '';
-			$t = array();
-			if ($row['links']) {
-				$links = t3lib_div::trimExplode(',', $row['links']);
-				foreach ($links as $link) {
-					$pre = substr($link, 0, 1);
-					$number = intval(substr($link, 1));
-					switch ($pre) {
-						case 'n' :
-							#$nntpAPI = t3lib_div::makeInstance('tx_nntpreader_api');
-							#$t[] = $nntpAPI->getPostingLink($number);
-							break;
-						case 'b':
-							$t[] = '<a href="http://bugs.typo3.org/view.php?id=' . $number . '" target="_blank">Mantis Bug #' . $number . '</a>';
-							break;
-						case 'i':
-							$t[] = '<a href="http://forge.typo3.org/issues/show/' . $number . '" target="_blank">Forge Issue #' . $number . '</a>';
-							break;
-					}
+		$marker['###CLASS###'] = $row['problem'] ? 'snippet-problem' : 'snippet-ok';
+		$marker['###CODE###'] = $this->highLight($row['code'], $row['language']);
+		$marker['###CODE_PLAIN###'] = htmlspecialchars($row['code']);
+		$marker['###COPY_TO_CLIPBOARD###'] = '';
 
-				}
-				$marker['###LINKS###'] = implode(', ', $t);
-			}
-			$this->markerHook($marker, $row);
+		$marker['###POSTER###'] = htmlspecialchars($row['poster']);
+
+		$marker['###COUNT_SNIPPETS###'] = sprintf($this->pi_getLL('author_snippets_count'), $this->getSnippetCountOfUser($row['poster']));
+		$subpartArray['###LINK_AUTHOR_SNIPPETS###'] = explode('explode-here', $this->pi_linkTP('explode-here', array($this->prefixId . '[author]' => urlencode($row['poster'])), 1));
+
+		$marker['###TITLE###'] = htmlspecialchars($row['title']);
+		$marker['###DESCRIPTION###'] = nl2br(htmlspecialchars($row['description']));
+		$marker['###DATE###'] = strftime($GLOBALS['TSFE']->tmpl->setup['languagesetting.']['dateFormat'], $row['crdate']);
+		$GLOBALS['TSFE']->ATagParams = 'title = "edit snippet"';
+		if($GLOBALS['TSFE']->fe_user->user['name'] == $row['poster']) {
+			$marker['###EDIT###'] = $this->cObj->stdWrap($this->pi_linkToPage($this->pi_getLL('edit snippet'), $this->conf['general.']['newsnippetPid'], '', array($this->pastecodePi2->prefixId . '[edit]' => $row['uid'])), $this->conf['general.']['editsnippet_stdWrap.']);
+		} else {
+			$marker['###EDIT###'] = '';
 		}
 
+		$GLOBALS['TSFE']->ATagParams = '';
+		$marker['###LANGUAGE###'] = $this->getLanguageLink($row['language']);
+		$marker['###TAGS###'] = '';
+		if($row['tags']) {
+			$tags = t3lib_div::trimExplode(',', $row['tags']);
+			foreach($tags as $tag) {
+				$t[] = $this->pi_linkTP(htmlspecialchars($tag), array(
+					$this->prefixId . '[tag]' => urlencode($tag),
+				), 1);
+			}
+			$marker['###TAGS###'] = implode(', ', $t);
+		}
+		$marker['###LINKS###'] = '';
+		$t = array();
+		if($row['links']) {
+			$links = t3lib_div::trimExplode(',', $row['links']);
+			foreach ($links as $link) {
+				$pre = substr($link, 0, 1);
+				$number = intval(substr($link, 1));
+				switch ($pre) {
+					case 'n' :
+						#$nntpAPI = t3lib_div::makeInstance('tx_nntpreader_api');
+						#$t[] = $nntpAPI->getPostingLink($number);
+					break;
+					case 'b':
+						$t[] = '<a href="http://bugs.typo3.org/view.php?id=' . $number . '" target="_blank">Mantis Bug #' . $number . '</a>';
+					break;
+					case 'i':
+						$t[] = '<a href="http://forge.typo3.org/issues/show/' . $number . '" target="_blank">Forge Issue #' . $number . '</a>';
+					break;
+				}
+			}
+			$marker['###LINKS###'] = implode(', ', $t);
+		}
 
-		$marker['###TX_RATINGS###'] = $this->ratings
-				? $this->ratings->getRatingDisplay('tx_pastecode_pi1' . intval($id)) : '';
+		$marker['###TX_RATINGS###'] = $this->ratings ? $this->ratings->getRatingDisplay('tx_pastecode_pi1' . intval($id)) : '';
+		// language keys
+		$marker += $this->prepareLLArray('EXT:pastecode/pi1/locallang.xml', $this);
 
-		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, array(), array());
+		$subpart['###CLIPBOARD###'] = '';
+		if($this->conf['single.']['pathToZeroClipboardJS'] && $this->conf['single.']['pathToZeroClipboardJS']) {
+			$clipboardSubpart = $this->cObj->getSubpart($totalSubpart, '###CLIPBOARD###');
+			$marker['###CLIPBOARD_PATH_JS###'] = $GLOBALS['TSFE']->tmpl->getFileName($this->conf['single.']['pathToZeroClipboardJS']);
+			$marker['###CLIPBOARD_PATH_SWF###'] = $GLOBALS['TSFE']->tmpl->getFileName($this->conf['single.']['pathToZeroClipboardSWF']);
+			$marker['###CODE_CLIPBOARD###'] = str_replace(array(PHP_EOL, "'"), array('\n', "\'"), $row['code']);
+			$marker['###CODE_CLIPBOARD###'] = htmlspecialchars($row['code']);
+			$subpart['###CLIPBOARD###'] = $this->cObj->substituteMarkerArray($clipboardSubpart, $marker);
+		}
+
+		$this->markerHook($marker, $row);
+		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart, $subpartArray);
 	}
 
-	function newCode()
-	{
-
-
-		$GLOBALS['TSFE']->additionalHeaderData[] = "
-			<script type=\"text/javascript\">
-			function addTag( p_string ) {
-				t_tag_separator = ',';
-				t_tag_string = document.getElementById('tags');
-				t_tag_select = document.getElementById('seltags');
-				if ( t_tag_string.value != '' ) {
-					t_tag_string.value = t_tag_string.value + t_tag_separator + p_string;
-				} else {
-					t_tag_string.value = t_tag_string.value + p_string;
-				}
-				t_tag_select.selectedIndex=0;
-			}
-			</script>
-		";
-		$totalSubpart = $this->cObj->getSubpart($this->template, '###NEWSNIPPET###');
-		$previewSubpart = $this->cObj->getSubpart($totalSubpart, '###PREVIEW###');
-		$pid = $GLOBALS['TSFE']->id;
-
-		$poster = $_COOKIE['snippetposter_' . $this->prefixId];
-		$marker['###OVERVIEWLINK###'] = $this->pi_linkTP('&lt;&lt: back to overview', array(), 1);
-		$marker['###HIDDEN###'] = '';
-
-
-		if ($this->piVars['edit']) {
-			$snippet = $this->pi_getRecord('tx_pastecode_code', intval($this->piVars['edit']));
-			if ($GLOBALS['TSFE']->fe_user->user['name'] != $snippet['poster']) {
-				return 'Access denied';
-			}
-			$marker['###HIDDEN###'] .= '<input type="hidden" name="tx_pastecode_pi1[edit]" value="' . intval($this->piVars['edit']) . '" />';
-			if (!$this->piVars['title']) $this->piVars['title'] = $snippet['title'];
-			if (!$this->piVars['description']) $this->piVars['description'] = $snippet['description'];
-			if (!$this->piVars['snippet']) $this->piVars['snippet'] = $snippet['code'];
-			if (!$this->piVars['links']) $this->piVars['links'] = $snippet['links'];
-			if (!$this->piVars['tags']) $this->piVars['tags'] = $snippet['tags'];
-			if (!$this->piVars['problem']) $this->piVars['problem'] = $snippet['problem'];
-
-		}
-
-
-		if ($GLOBALS['TSFE']->fe_user->user['uid']) {
-			$subpart['###USERINFO###'] = '';
-			$marker['###HIDDEN###'] .= '<input type="hidden" name="tx_pastecode_pi1[poster]" value="' . htmlspecialchars($GLOBALS['TSFE']->fe_user->user['name']) . '" />';
-		}
-
-		if ($this->piVars['save']) {
-			//validate
-			$err = array();
-			if (strlen($this->piVars['title']) < 4 || strlen($this->piVars['snippet']) < 30) {
-				$err[] = 'Your Entries are too small!';
-			}
-			#captcha response
-			if (t3lib_extMgm::isLoaded('captcha') && !$GLOBALS['TSFE']->fe_user->user['uid']) {
-				session_start();
-				if ($this->piVars['captchaResponse'] != $_SESSION['tx_captcha_string']) {
-					$err[] = $this->pi_getLL('captcha_error');
-				}
-				$_SESSION['tx_captcha_string'] = '';
-			}
-			if (count($err) == 0) {
-				//save snippet
-				if ($this->piVars['poster'] == '') {
-					$this->piVars['poster'] = 'anonymous';
-				} else {
-					SetCookie('snippetposter_' . $this->prefixId, $this->piVars['poster']);
-				}
-				$links = @implode(',', t3lib_div::trimExplode(',', $this->piVars['links']));
-
-				$fields_values = array(
-					'tstamp' => time(),
-					'pid' => $this->storagePid,
-					'title' => $this->piVars['title'],
-					'description' => $this->piVars['description'],
-					'language' => $this->piVars['language'],
-					'problem' => intval($this->piVars['problem']),
-					'code' => $this->piVars['snippet'],
-					'tags' => implode(',', t3lib_div::trimexplode(',', $this->piVars['tags'], 1)),
-					'poster' => $this->piVars['poster'],
-					'links' => $links,
-				);
-
-				if ($this->piVars['edit']) {
-					$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_pastecode_code', 'uid=' . intval($this->piVars['edit']), $fields_values);
-				} else {
-					$fields_values['crdate'] = time();
-					$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_pastecode_code', $fields_values, $no_quote_fields = FALSE);
-				}
-				// clear cache
-				$this->clearSpecificCache($GLOBALS['TSFE']->id);
-				header('location:' . t3lib_div::locationHeaderUrl($this->pi_getPageLink($GLOBALS['TSFE']->id)));
-			}
-		}
-		$marker['###LEGEND###'] = $this->piVars['edit'] ? 'Edit snippet' : 'New snippet';
-		$marker['###MESSAGE###'] = count($err) ? '<p class="error">' . implode('<br />', $err) . '</p>' : '';
-		$marker['###ACTION###'] = $this->piVars['edit']
-				? $this->pi_getPageLink($pid, '', array($this->prefixId . '[edit]' => 1))
-				: $this->pi_getPageLink($pid, '', array($this->prefixId . '[new]' => 1));
-		$marker['###TITLE###'] = htmlspecialchars($this->piVars['title']);
-		$marker['###DESCRIPTION###'] = htmlspecialchars($this->piVars['description']);
-		$marker['###POSTER###'] = $this->piVars['poster'] ? htmlspecialchars($this->piVars['poster'])
-				: htmlspecialchars($poster);
-		$marker['###SNIPPET###'] = htmlspecialchars($this->piVars['snippet']);
-		$marker['###LINKS###'] = htmlspecialchars($this->piVars['links']);
-		$marker['###TAGS###'] = htmlspecialchars($this->piVars['tags']);
-		$marker['###PROBLEM###'] = intval($this->piVars['problem']) ? 'checked="checked"' : '';
-		$marker['###LANGOPTIONS###'] = $this->languageSelect();
-		$marker['###SELTAGS###'] = $this->getTags();
-
-		$zw = '&#09;&#09;&#09;';
-		$marker['###HELP###'] = '<a href="#" title="click for help" onclick="toggleHelp();return false;>' . $this->icon['help'] . '</a>';
-
-		#captcha
-		if (t3lib_extMgm::isLoaded('captcha') && !$GLOBALS['TSFE']->fe_user->user['uid']) {
-			$marker['###CAPTCHAINPUT###'] = '<input type="text" id="captcha" size="10" name="' . $this->prefixId . '[captchaResponse]" value="" />';
-			$marker['###CAPTCHAPICTURE###'] = '<img src="' . t3lib_extMgm::siteRelPath('captcha') . 'captcha/captcha.php" alt="" />';
-			$marker['###L_CAPTCHA###'] = $this->pi_getLL('captcha');
-		} else {
-			$subpart['###CAPTCHA###'] = '';
-		}
-
-
-		if ($this->piVars['preview']) {
-			$marker['###PREVIEWCODE###'] .= $this->highLight($this->piVars['snippet'], $this->piVars['language']);
-			$marker['###LANG###'] = htmlspecialchars($this->piVars['language']);
-			$subpart['###PREVIEW###'] = $this->cObj->substituteMarkerArrayCached($previewSubpart, $marker);
-		} else {
-			$subpart['###PREVIEW###'] = '';
-		}
-		$this->markerHook($marker, $this->piVars);
-		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
-	}
-
-	function authorList()
-	{
-		if ($this->piVars['author']) {
+	function authorList() {
+		if($this->piVars['author']) {
 			return $this->overview();
 		}
 		$totalSubpart = $this->cObj->getSubpart($this->template, '###AUTHORLIST###');
 		$rowSubpart = $this->cObj->getSubpart($totalSubpart, '###ROW###');
 
-
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 			'count(*) anz, poster',
 			'tx_pastecode_code',
-			$where_clause = 'pid=' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code'),
-			$groupBy = 'poster',
-			$orderBy = 'anz desc',
-			$limit = ''
+			'pid = ' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code'),
+			'poster',
+			'anz desc'
 		);
 
-		$rows = '';
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+		$subpart['###ROW###'] = '';
+		foreach($rows as $row) {
 			$marker['###AUTHOR###'] = $this->pi_linkTP(htmlspecialchars($row['poster']) . ' [' . $row['anz'] . ' snippets]', array(
-																																  $this->prefixId . '[author]' => urlencode($row['poster'])
-																															 ), true);
-			$rows .= $this->cObj->substituteMarkerArrayCached($rowSubpart, $marker);
+				$this->prefixId . '[author]' => urlencode($row['poster'])
+			), true);
+			$subpart['###ROW###'] .= $this->cObj->substituteMarkerArrayCached($rowSubpart, $marker);
 		}
-
-		$subpart['###ROW###'] = $rows;
-
 		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
 	}
 
-	function overView()
-	{
-
+	function overView() {
 		$totalSubpart = $this->cObj->getSubpart($this->template, '###LISTSNIPPETS###');
 		$rowSubpart = $this->cObj->getSubpart($totalSubpart, '###ROW###');
 		$rowOSubpart = $this->cObj->getSubpart($totalSubpart, '###OROW###');
 		$pid = $GLOBALS['TSFE']->id;
 		$order = 'title';
+		$addWhere = '';
 
-		if ($this->piVars['tag']) {
-			$marker['###HEADER###'] = 'Snippets with tag "' . htmlspecialchars(urldecode($this->piVars['tag'])) . '"';
-			$marker['###SHOWALL###'] = '<p>' . $this->pi_linkTP('show all scripts', array(), 1) . '</p>';
-			$addWhere = ' and FIND_IN_SET("' . urldecode($this->piVars['tag']) . '", tags)>0';
-		} elseif ($this->piVars['author']) {
-			$marker['###HEADER###'] = 'Snippets from "' . htmlspecialchars(urldecode($this->piVars['author'])) . '"';
-			$marker['###SHOWALL###'] = '<p>' . ($this->conf['authorlist']
-					? $this->pi_linkTP('back to author list', array(), 1)
-					: $this->pi_linkTP('show all scripts', array(), 1)) . '</p>';
-			$addWhere = ' and poster="' . urldecode($this->piVars['author']) . '"';
-		} elseif ($this->piVars['language']) {
-			$marker['###HEADER###'] = 'Snippets with language "' . htmlspecialchars(urldecode($this->piVars['language'])) . '"';
-			$marker['###SHOWALL###'] = '<p>' . $this->pi_linkTP('show all scripts', array(), 1) . '</p>';
-			$addWhere = ' and language="' . urldecode($this->piVars['language']) . '"';
+		$marker = array();
+		$marker['###SHOWALL###'] = '';
+
+		if($this->piVars['tag']) {
+			$marker['###HEADER###'] = sprintf($this->pi_getLL('header_snippets_with_tag'), htmlspecialchars(urldecode($this->piVars['tag'])));
+			$marker['###SHOWALL###'] = $this->pi_getLL('clear filters');
+			$addWhere .= ' AND FIND_IN_SET("' . $GLOBALS['TYPO3_DB']->quoteStr(urldecode($this->piVars['tag']), 'tx_pastecode_code') . '", tags) > 0';
+		} elseif($this->piVars['author']) {
+			$marker['###HEADER###'] = sprintf($this->pi_getLL('header_snippets_from_author'), htmlspecialchars(urldecode($this->piVars['author'])));
+			$marker['###SHOWALL###'] = ($this->conf['authorlist'] ? $this->pi_getLL('back to author list') : $this->pi_getLL('clear filters'));
+			$addWhere .= ' AND poster="' . $GLOBALS['TYPO3_DB']->quoteStr(urldecode($this->piVars['author']), 'tx_pastecode_code') . '"';
+		} elseif($this->piVars['sword'] || $this->piVars['language']) {
+			if(!$this->piVars['sword']) {
+				$marker['###HEADER###'] = sprintf($this->pi_getLL('header_snippets_language'), htmlspecialchars(urldecode($this->piVars['language'])));
+			} elseif(!$this->piVars['language']) {
+				$marker['###HEADER###'] = sprintf($this->pi_getLL('header_snippets_search_for'), htmlspecialchars(urldecode($this->piVars['sword'])));
+			} else {
+				$marker['###HEADER###'] = sprintf($this->pi_getLL('header_snippets_search_and_language'), htmlspecialchars(urldecode($this->piVars['sword'])), htmlspecialchars(urldecode($this->piVars['language'])));
+			}
+			$marker['###SHOWALL###'] = $this->pi_getLL('clear filters');
+
+			if($this->piVars['language']) {
+				$addWhere .= ' AND language="' . $GLOBALS['TYPO3_DB']->quoteStr(urldecode($this->piVars['language']), 'tx_pastecode_code') . '"';
+			}
+			$sword = addslashes(str_replace("'", '', $this->piVars['sword']));
+			if($sword) {
+				$addWhere .= ' AND (title LIKE "%' . $GLOBALS['TYPO3_DB']->escapeStrForLike($sword, 'tx_pastecode_code') . '%"';
+				$addWhere .= ' OR description LIKE "%' . $GLOBALS['TYPO3_DB']->escapeStrForLike($sword, 'tx_pastecode_code') . '%")';
+			}
 		} elseif ($this->conf['top25'] || $this->piVars['top25']) {
+			/* TODO: easier? pagebrowser does not exist any more */
 			$marker['###HEADER###'] = 'Top 25 rated snippets';
-			$marker['###SHOWALL###'] = '';
 			$top25 = $this->getTop25();
-			$this->conf['pageBrowser.']['results'] = 25;
+			$this->conf['snippets.']['limit'] = 25;
 			$order = 'FIELD(uid,' . $top25['idlist'] . ')';
-			$addWhere = ' and uid IN(' . $top25['idlist'] . ')';
-
+			$addWhere .= ' AND uid IN(' . $top25['idlist'] . ')';
 		} elseif ($this->conf['my_snippets'] || ($this->piVars['my_snippets'] && $GLOBALS['TSFE']->fe_user->user['uid'])) {
 			$marker['###HEADER###'] = 'My snippets';
-			$marker['###SHOWALL###'] = '';
-
 			$order = 'crdate';
-			$addWhere = ' and poster="' . $GLOBALS['TSFE']->fe_user->user['name'] . '"';
-
+			$addWhere .= ' AND poster="' . $GLOBALS['TSFE']->fe_user->user['name'] . '"';
 		} else {
 			$marker['###HEADER###'] = 'Snippets';
-			$marker['###SHOWALL###'] = '';
-			$addWhere = '';
+		}
+		if($marker['###SHOWALL###']) {
+			$marker['###SHOWALL###'] = $this->cObj->stdWrap($this->pi_linkTP($marker['###SHOWALL###'], array(), 1), $this->conf['general.']['showall_stdWrap.']);
 		}
 
-		//overview
+		// overview
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'count(*)',
 			'tx_pastecode_code',
-			$where_clause = 'pid=' . $this->storagePid . $addWhere . $this->cObj->enableFields('tx_pastecode_code'),
-			$groupBy = '',
-			$orderBy = 'title',
-			$limit = ''
+			'pid = ' . $this->storagePid . $addWhere . $this->cObj->enableFields('tx_pastecode_code'),
+			'',
+			'title'
 		);
-
 		$row = $GLOBALS['TYPO3_DB']->sql_fetch_row($res);
 		$count = $row[0];
-		$marker['###PB_TOTAL###'] = $count;
 
-
-		// prepare pagebrowser
-		$pbConf = $this->conf['pageBrowser.'];
-		$pbConf['maxPages'] = 10;
-
-		$this->pi_alwaysPrev = $pbConf['alwaysPrev'];
-
-		$this->internal['res_count'] = $count;
-		$this->internal['results_at_a_time'] = $pbConf['results'];
-		$this->internal['maxPages'] = 6;
-
-		$wrapArrFields = explode(',', 'disabledLinkWrap,inactiveLinkWrap,activeLinkWrap,browseLinksWrap,showResultsWrap,showResultsNumbersWrap,browseBoxWrap');
-		$wrapArr = array();
-		foreach ($wrapArrFields as $key) {
-			if ($pbConf[$key]) {
-				$wrapArr[$key] = $pbConf[$key];
-			}
-		}
-
-		// render pagebrowser
-		$marker['###BROWSE_LINKS###'] = $this->pi_list_browseresults(
-			0,
-			$pbConf['tableParams'],
-			$wrapArr,
-			'pointer',
-			true);
-
-
-		$marker['###PB_START###'] = intval($this->piVars['pointer']) * $pbConf['results'] + 1;
-		$marker['###PB_END###'] = intval($marker['###PB_START###'] + $pbConf['results']) < $count
-				? intval($marker['###PB_START###'] + $pbConf['results']) : $count;
-
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 			'*',
 			'tx_pastecode_code',
-			$where_clause = 'pid=' . $this->storagePid . $addWhere . $this->cObj->enableFields('tx_pastecode_code'),
-			$groupBy = '',
-			$orderBy = $order,
-			$limit = intval($this->piVars['pointer']) * $pbConf['results'] . ',' . $pbConf['results']
+			'pid = ' . $this->storagePid . $addWhere . $this->cObj->enableFields('tx_pastecode_code'),
+			'',
+			$order,
+			intval($this->piVars['page']) * $this->conf['snippets.']['limit'] . ',' . $this->conf['snippets.']['limit']
 		);
-		$rows = '';
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$l = $this->pi_linkTP('',
-								  array(
-									   $this->prefixId . '[code]' => $row['uid'],
-								  ), 1, $this->conf['snippetPid']
-			);
-			$marker['###HREF###'] = $this->cObj->lastTypoLinkUrl;
-			$marker['###ICON###'] = $row['problem'] ? $this->icon['problem'] : $this->icon['ok'];
-			$marker['###TITLE###'] = $row['title'];
-			$marker['###POSTER###'] = $row['poster'];
-			$marker['###DATE###'] = date('Y-m-d', $row['crdate']);
-			$marker['###LANG###'] = $row['language'];
-			$rating = $this->ratings ? $this->ratings->getRatingArray('tx_pastecode_pi1' . intval($row['uid']))
-					: array();
-			$ratetxt = intval($rating['vote_count']) == 0 ? '-'
-					: number_format($rating['rating'] / $rating['vote_count'], 2);
+
+		// render pagebrowser
+		$marker['###BROWSE_LINKS###'] = $this->getListGetPageBrowser(ceil($count/$this->conf['snippets.']['limit']));
+
+		$marker['###PB_TOTAL###'] = $count;
+		$marker['###PB_START###'] = intval($this->piVars['page']) * $this->conf['snippets.']['limit'] + 1;
+		$marker['###PB_END###'] = intval($marker['###PB_START###'] + $this->conf['snippets.']['limit']) < $count
+				? intval($marker['###PB_START###'] + $this->conf['snippets.']['limit']) : $count;
+
+		$subpart['###OROW###'] = '';
+		foreach($rows as $row) {
+			$subpartArray['###LINK_ITEM###'] = explode('explode-here', $this->pi_linkTP('explode-here', array($this->prefixId . '[code]' => $row['uid']), 1));
+			$marker['###CLASS###'] = $row['problem'] ? 'snippet-problem' : 'snippet-ok';
+			$marker['###TITLE###'] = htmlspecialchars($row['title']);
+			$marker['###POSTER###'] = htmlspecialchars($row['poster']);
+			$marker['###DATE###'] = strftime($GLOBALS['TSFE']->tmpl->setup['languagesetting.']['dateFormat'], $row['crdate']);
+
+			$marker['###LANGUAGE###'] = $this->getLanguageLink($row['language']);
+			$rating = $this->ratings ? $this->ratings->getRatingArray('tx_pastecode_pi1' . intval($row['uid'])) : array();
+			$ratetxt = intval($rating['vote_count']) == 0 ? '-' : number_format($rating['rating'] / $rating['vote_count'], 2);
 			$marker['###TX_RATINGS###'] = $this->ratings ? $ratetxt : '';
 
 			$this->markerHook($marker, $row);
-			$rows .= $this->cObj->substituteMarkerArrayCached($rowOSubpart, $marker);
+			$subpart['###OROW###'] .= $this->cObj->substituteMarkerArrayCached($rowOSubpart, $marker, array(), $subpartArray);
 		}
-		$subpart['###OROW###'] = $rows;
 
 		// last 10
-		$marker['###RSS###'] = $this->cObj->typolink('get the last snippets as RSS-feed' . $this->icon['rss'], array('parameter' => $this->pid . ',112'));
+		$marker['###RSS###'] = $this->cObj->typolink('get the last snippets as RSS-feed', array('parameter' => $this->pid . ',112'));
 		$subpart['###ROW###'] = $this->lastSnippets(10, $rowSubpart);
 
-
-		$marker['###NEW###'] = $this->pi_linkTP('new snippet', array($this->prefixId . '[new]' => 1), 1);
-		$marker['###SEARCH###'] = $this->pi_linkTP('search', array($this->prefixId . '[search]' => 1), 1);
-		$marker['###TAGS###'] = $this->tagCloud();
+		$marker['###NEW###'] = $this->cObj->stdWrap($this->pi_linkToPage($this->pi_getLL('new snippet'), $this->conf['general.']['newsnippetPid']), $this->conf['general.']['newsnippet_stdWrap.']);
+		$marker['###SEARCH###'] = $this->searchView();
+		$marker['###TAGCLOUD###'] = $this->tagCloud();
 		$marker['###LANGUAGES###'] = $this->langCloud();
 
+		// language keys
+		$marker += $this->prepareLLArray('EXT:pastecode/pi1/locallang.xml', $this);
+
+		$this->markerHook($marker);
 		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
-
-
 	}
 
-	function rssView()
-	{
+	function rssView() {
 		$totalSubpart = $this->cObj->getSubpart($this->template, '###RSSFEED###');
 		$rowSubpart = $this->cObj->getSubpart($totalSubpart, '###CONTENT###');
 
+		$marker = array();
 		$marker['###SITE_TITLE###'] = 'Snippets on support.typo3.org';
 		$marker['###SITE_LINK###'] = 'http://support.typo3.org/snippets/';
 		$marker['###SITE_DESCRIPTION###'] = 'snippets';
@@ -610,73 +400,106 @@ class tx_pastecode_pi1 extends tslib_pibase
 		$marker['###NEWS_LASTBUILD###'] = date('Y-m-d');
 
 		$subpart['###CONTENT###'] = $this->lastSnippets(20, $rowSubpart);
-		$content = $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
 
-		return $content;
+		$this->markerHook($marker);
+		return $this->cObj->substituteMarkerArrayCached($totalSubpart, $marker, $subpart);
 	}
 
-	function tagCloud()
-	{
+	/**
+	 * Generate tag cloud
+	 *
+	 * @return string: HTML code
+	 */
+	function tagCloud() {
+		$template = $this->cObj->getSubpart($this->template, '###TEMPLATE_TAGCLOUD###');
+		$templateTag = $this->cObj->getSubpart($template, '###TAGCLOUD_TAG###');
+
+		$marker = array();
+
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'*',
 			'tx_pastecode_code',
-			'pid=' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code')
+			'pid = ' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code')
 		);
-		$max = 0;
 		$t = array();
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			if ($row['tags']) {
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+			if($row['tags']) {
 				$tags = t3lib_div::trimExplode(',', $row['tags']);
-				foreach ($tags as $tag) {
-					$t[$tag]++;
-					$max = $t[$tag] > $max ? $t[$tag] : $max;
+				foreach($tags as $tag) {
+					// do not allow numbers
+					if(!(int)$tag || strlen($tag) != strlen((int)$tag)) {
+						$t[$tag]++;
+					}
 				}
 			}
 		}
 
-		$q = floor($max / 8);
-		foreach ($t as $tag => $count) {
-			if ($count > intval($this->conf['tagsMinCount'])) {
-				$class = floor($count / $q);
-				if ($class > 8) $class = 8;
-				$taglinks[] = $this->pi_linkTP('<span class="tag-' . $class . '">' . htmlspecialchars($tag) . '</span>', array(
-																															  $this->prefixId . '[tag]' => urlencode($tag),
-																														 ), 1, $this->conf['snippetPid']);
+		$maxCountTag = max($t);
+		$minCountTag = min($t);
+		$q = ceil(($maxCountTag - $minCountTag) / $this->conf['tagcloud.']['maxSize']);
+
+		// output tag only, if it is used more than x times
+		foreach($t as $tag => $count) {
+			if($count < intval($this->conf['tagcloud.']['tagsMinCount'])) {
+				unset($t[$tag]);
 			}
 		}
 
-		return implode(' ', $taglinks);
+		// do not output all tags
+		if($this->conf['tagcloud.']['tagsMax'] && count($t) > $this->conf['tagcloud.']['tagsMax']) {
+			arsort($t, SORT_NUMERIC);
+			$t = array_slice($t, 0, $this->conf['tagcloud.']['tagsMax'], true);
+		}
+
+		// shuffle tags (with preserving of keys)
+		$keys = array_keys($t);
+		shuffle($keys);
+		$t = array_merge(array_flip($keys), $t);
+
+		// build links for tags
+		$subpart['###TAGCLOUD_TAG###'] = '';
+		foreach($t as $tag => $count) {
+			$class = ceil(($count - $minCountTag + 1) / $q);
+			if($class > $this->conf['tagcloud.']['maxSize']) {
+				$class = $this->conf['tagcloud.']['maxSize'];
+			}
+			if($this->conf['tagcloud.']['sizeReverse']) {
+				$class = $this->conf['tagcloud.']['maxSize'] + 1 - $class;
+			}
+			// currently choosed tag
+			if($this->piVars['tag'] == $tag) {
+				$marker['###TAG###'] = '<b class="size-' . $class . '">' . htmlspecialchars($tag) . '</b>';
+			} else {
+				$marker['###TAG###'] = $this->pi_linkTP('<span class="size-' . $class . '">' . htmlspecialchars($tag) . '</span>', array(
+					$this->prefixId . '[tag]' => urlencode($tag),
+				), 1, $this->conf['general.']['snippetPid']);
+			}
+			$subpart['###TAGCLOUD_TAG###'] .= $this->cObj->substituteMarkerArray($templateTag, $marker);
+		}
+		return $this->cObj->substituteMarkerArrayCached($template, array(), $subpart);
 	}
 
-	function lastSnippets($count, $subPart)
-	{
+	function lastSnippets($count, $subPart) {
 		// last 10
-
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'*',
 			'tx_pastecode_code',
-			$where_clause = 'pid=' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code'),
-			$groupBy = '',
-			$orderBy = 'crdate desc',
-			$limit = intval($count)
+			'pid = ' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code'),
+			'',
+			'crdate desc',
+			intval($count)
 		);
 
-
 		$rows = '';
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$l = $this->pi_linkTP('',
-								  array(
-									   $this->prefixId . '[code]' => $row['uid'],
-								  ), 1, $this->conf['snippetPid']
-			);
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$marker['###HREF###'] = $this->cObj->lastTypoLinkUrl;
 			$marker['###HREFRSS###'] = 'snippets/c/' . $row['uid'] . '/';
 			$marker['###BASEURL###'] = $this->conf['baseURL'];
 
-			$marker['###TITLE###'] = $row['title'];
-			$marker['###POSTER###'] = $row['poster'];
-			$marker['###DATE###'] = date('Y-m-d', $row['crdate']);
-			$marker['###LANG###'] = $row['language'];
+			$marker['###TITLE###'] = htmlspecialchars($row['title']);
+			$marker['###POSTER###'] = htmlspecialchars($row['poster']);
+			$marker['###DATE###'] = strftime($GLOBALS['TSFE']->tmpl->setup['languagesetting.']['dateFormat'], $row['crdate']);
+			$marker['###LANGUAGE###'] = $this->getLanguageLink($row['language']);
 			$marker['###DESCRIPTION###'] = htmlspecialchars($row['description']);
 			$this->markerHook($marker, $row);
 			$rows .= $this->cObj->substituteMarkerArrayCached($subPart, $marker);
@@ -684,97 +507,53 @@ class tx_pastecode_pi1 extends tslib_pibase
 		return $rows;
 	}
 
-	function getTags()
-	{
+	function langCloud() {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'*',
 			'tx_pastecode_code',
-			$where_clause = 'pid=' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code')
-		);
-		$max = 0;
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			if ($row['tags']) {
-				$tags = t3lib_div::trimExplode(',', $row['tags']);
-				foreach ($tags as $tag) {
-					$t[] = $tag;
-				}
-			}
-		}
-		$t = array_unique($t);
-		sort($t);
-		$options[] = '<option value=""></option>';
-		foreach ($t as $tag) {
-			$options[] = '<option value="' . htmlspecialchars($tag) . '" onclick="addTag(\'' . htmlspecialchars($tag) . '\');">' . htmlspecialchars($tag) . '</option>';
-		}
-
-		return implode("", $options);
-	}
-
-	function langCloud()
-	{
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-			'*',
-			'tx_pastecode_code',
-			$where_clause = 'pid=' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code')
+			'pid = ' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code')
 		);
 		$t = array();
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$t[$row['language']]++;
 		}
 		#sort($t);
 
-		foreach ($t as $lang => $count) {
+		foreach($t as $lang => $count) {
 			$langlinks[] = '<li>' . $this->pi_linkTP(htmlspecialchars($lang) . ' (' . $count . ')', array(
-																										 $this->prefixId . '[language]' => urlencode($lang),
-																									), 1, $this->conf['snippetPid']) . '</li>';
+				$this->prefixId . '[language]' => urlencode($lang),
+			), 1, $this->conf['general.']['snippetPid']) . '</li>';
 		}
 		return implode(' ', $langlinks);
 	}
 
-
-	function highLight($code, $language)
-	{
+	/**
+	 * Highlight code with GeSHi
+	 *
+	 * @param string $code: Code to highlight
+	 * @param string $language: Type of code, e.g. "php", "typoscript", "html4strict", ...
+	 */
+	public function highLight($code, $language) {
 		$geshi = new GeSHi($code, $language, '');
 		$geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS, 2);
 		$geshi->set_line_style('background: #fcfcfc;', 'background: #fdfdfd;');
 		$geshi->enable_classes(true);
-		$geshi->set_overall_id('pastecode-code-c') . $this->cObj->data['uid'];
+		$geshi->set_overall_id('pastecode-code-c');
 		$GLOBALS['TSFE']->additionalCSS[] = $geshi->get_stylesheet();
 		return $geshi->parse_code();
 	}
 
-	function languageSelect()
-	{
-		$optGroup = false;
-		$options = '';
-		foreach ($this->languages as $lang) {
-			if (substr($lang, 0, 7) == '--div--') {
-				$og = explode(';', $lang);
-				$options .= '<optgroup' . ($og[1] ? ' label="' . $og[1] . '"' : '') . '>';
-				$optGroup = true;
-			} else {
-				$options .= '<option value="' . $lang . '"' . ($lang == $this->piVars['language']
-						? ' selected="selected"' : '') . '>' . $lang . '</option>';
-			}
-		}
-		if ($optGroup) {
-			$options .= '</optgroup>';
-		}
-		return $options;
-	}
-
-	function getTop25()
-	{
+	function getTop25() {
 		$result = array();
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'rating, vote_count, (rating/vote_count) q, substring(reference,17) sid',
 			'tx_ratings_data',
-			$where_clause = 'vote_count>0 and left(reference,16) = "tx_pastecode_pi1"',
+			'vote_count > 0 and left(reference,16) = "tx_pastecode_pi1"',
 			'',
 			'q desc',
 			'25'
 		);
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$result['ids'][] = $row['sid'];
 			$result['top'][] = $row;
 		}
@@ -783,32 +562,106 @@ class tx_pastecode_pi1 extends tslib_pibase
 		return $result;
 	}
 
-	function clearSpecificCache($pid, $cHash = false)
-	{
-		if (is_array($pid)) {
-			$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages', 'page_id IN (' . implode(',', $pid) . ')');
-			$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pagesection', 'page_id IN (' . implode(',', $pid) . ')');
-		} else {
-			$addWhere = $cHash ? ' and cHash = "' . $cHash . '"' : '';
-			$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages', 'page_id = ' . $pid . $addWhere);
-			$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pagesection', 'page_id = ' . $pid . $addWhere);
-		}
-	}
-
-	function markerHook(&$marker, $row)
-	{
-		if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['pastecode']['markerHook'])) {
-			foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['pastecode']['markerHook'] as $_classRef) {
+	function markerHook(&$marker, $row = NULL) {
+		if(is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['pastecode']['markerHook'])) {
+			foreach($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['pastecode']['markerHook'] as $_classRef) {
 				$_procObj = & t3lib_div::getUserObj($_classRef);
 				$marker = $_procObj->pastecodeMarkerProcessor($marker, $row, $this);
 			}
 		}
 	}
 
+	public function languageSelect(&$piObj) {
+		$options = '';
+		foreach(t3lib_div::trimExplode(',', $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_pastecode_pi1.']['general.']['languages']) as $lang) {
+			$options .= '<option value="' . $lang . '"' . ($lang == $piObj->piVars['language']
+				? ' selected="selected"' : '') . '>' . $lang . '</option>';
+		}
+		return $options;
+	}
+
+	/**
+	 * Render page browser with ext. page
+	 *
+	 * @param integer $numberOfPages: Amount of pages to render
+	 * @return string: HTML code
+	 */
+	protected function getListGetPageBrowser($numberOfPages) {
+		// Get default configuration
+		$conf = $this->conf['snippets.']['pagebrowse.'];
+		// Modify this configuration
+		$conf['pageParameterName'] = $this->prefixId . '|page';
+		$conf['numberOfPages'] = $numberOfPages;
+		if($this->piVars['sword']) {
+			$conf['extraQueryString'] = '&' . $this->prefixId . '[sword]=' . $this->piVars['sword'];
+		}
+		if($this->piVars['language']) {
+			$conf['extraQueryString'] = '&' . $this->prefixId . '[language]=' . $this->piVars['language'];
+		}
+		if($this->piVars['tag']) {
+			$conf['extraQueryString'] = '&' . $this->prefixId . '[tag]=' . $this->piVars['tag'];
+		}
+		// Get page browser
+		return $this->cObj->cObjGetSingle('USER', $conf);
+	}
+
+	/**
+	 * Generate template markers for language keys
+	 *
+	 * @param string $langFile: Language file
+	 * @return array
+	 */
+	public function prepareLLArray($langFile, &$piObj){
+		$returnArray = array();
+		// Read in language file
+		$langAll = t3lib_div::readLLfile($langFile, 'default');
+
+		// Create language markers
+		foreach($langAll['default'] as $key => $value) {
+			$returnArray['###LL_' . strtoupper(str_replace(' ', '_', $key)) . '###'] = $piObj->pi_getLL($key);
+		}
+		return $returnArray;
+	}
+
+	/**
+	 * Get amount of snippets a user has created
+	 *
+	 * @param string $user: Name of user
+	 * @return integer: Count of snippets
+	 */
+	public function getSnippetCountOfUser($user) {
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			'count(*)',
+			'tx_pastecode_code',
+			'pid = ' . $this->storagePid . ' AND poster = "' . $user . '"' . $this->cObj->enableFields('tx_pastecode_code')
+		);
+		$row = $GLOBALS['TYPO3_DB']->sql_fetch_row($res);
+		return $row[0];
+	}
+
+	/**
+	 * Link category to list and filter for it
+	 *
+	 * @param string $language
+	 * @return string: HTML code (link)
+	 */
+	protected function getLanguageLink($language) {
+		$GLOBALS['TSFE']->ATagParams = 'title="show all snippets of language ' . htmlspecialchars($language) . '"';
+		if($this->conf['snippets.']['linkLanguage']) {
+			$link = $this->pi_linkTP(
+				htmlspecialchars($language),
+				array($this->prefixId . '[language]' => urlencode($language)),
+				1
+			);
+		} else {
+			$link = htmlspecialchars($language);
+		}
+		$GLOBALS['TSFE']->ATagParams = '';
+		return $link;
+	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/pastecode/pi1/class.tx_pastecode_pi1.php']) {
+if(defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/pastecode/pi1/class.tx_pastecode_pi1.php']) {
 	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/pastecode/pi1/class.tx_pastecode_pi1.php']);
 }
-
 ?>

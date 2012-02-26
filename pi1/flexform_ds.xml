@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<T3DataStructure>
+	<meta>
+		<langDisable>1</langDisable>
+	</meta>
+	<sheets>
+		<general>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:pastecode/locallang_tca.xml:sheetGeneral</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<displayMode>
+						<TCEforms>
+							<label>LLL:EXT:pastecode/locallang_tca.xml:displayMode</label>
+							<config>
+								<type>select</type>
+								<items type="array">
+									<numIndex index="1" type="array">
+										<numIndex index="0">LLL:EXT:pastecode/locallang_tca.xml:displayMode.snippets</numIndex>
+										<numIndex index="1">snippets</numIndex>
+									</numIndex>
+									<numIndex index="2" type="array">
+										<numIndex index="0">LLL:EXT:pastecode/locallang_tca.xml:displayMode.tagcloud</numIndex>
+										<numIndex index="1">tagcloud</numIndex>
+									</numIndex>
+									<numIndex index="3" type="array">
+										<numIndex index="0">LLL:EXT:pastecode/locallang_tca.xml:displayMode.languages</numIndex>
+										<numIndex index="1">languages</numIndex>
+									</numIndex>
+									<numIndex index="4" type="array">
+										<numIndex index="0">LLL:EXT:pastecode/locallang_tca.xml:displayMode.last</numIndex>
+										<numIndex index="1">last</numIndex>
+									</numIndex>
+									<numIndex index="5" type="array">
+										<numIndex index="0">LLL:EXT:pastecode/locallang_tca.xml:displayMode.search</numIndex>
+										<numIndex index="1">search</numIndex>
+									</numIndex>
+								</items>
+								<maxitems>1</maxitems>
+								<size>1</size>
+							</config>
+						</TCEforms>
+					</displayMode>
+				</el>
+			</ROOT>
+		</general>
+	</sheets>
+</T3DataStructure>

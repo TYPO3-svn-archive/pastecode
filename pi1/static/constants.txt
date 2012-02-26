@@ -1,0 +1,34 @@
+plugin.tx_pastecode_pi1 {
+	general {
+		# cat=plugin_pastecode/general/10; type=string; label=Template:Location of the template file
+		templateFile = EXT:pastecode/pi1/template.html
+		# cat=plugin_pastecode/general/20; type=string; label=View:Defines which part to show, possible values are "default", "snippets", "tagcloud", "languages" and "last"
+		displayMode =
+		# cat=plugin_pastecode/general/30; type=int+; label=Page ID:ID of page where to link to (in tagcloud, search, ...)
+		snippetPid =
+		# cat=plugin_pastecode/general/40; type=int+; label=Page ID (create snippet):ID of page where a new snippet can be created
+		newsnippetPid =
+		# cat=plugin_pastecode/general/50; type=string; label=Languages:Available languages to select from, e.g. one of these: 'php', 'typoscript', 'javascript', 'html4strict', 'sql', 'xml', 'diff', '--div--;other', 'actionscript', 'ada', 'apache', 'applescript', 'asm', 'asp', 'bash', 'blitzbasic', 'c', 'c_mac', 'caddcl', 'cadlisp', 'cpp', 'csharp', 'css', 'd', 'delphi', 'div', 'dos', 'eiffel', 'freebasic', 'gml', 'ini', 'java', 'lisp', 'lua', 'matlab', 'mpasm', 'mysql', 'nsis', 'objc', 'ocaml', 'ocaml-brief', 'oobas', 'oracle8', 'pascal', 'perl', 'php-brief', 'python', 'qbasic', 'ruby', 'scheme', 'sqlbasic', 'smarty', 'vb', 'vbnet', 'vhdl', 'visualfoxpro'
+		languages = php,typoscript,javascript,sql,xml
+	}
+	snippets {
+		# cat=plugin_pastecode/snippets/10; type=int+; label=Count snippets:Amount of snippets listed in list
+		limit = 10
+		# cat=plugin_pastecode/snippets/20; type=boolean; label=Link language:You can click the language to get a filtered list of this category
+		linkLanguage = 1
+	}
+	single {
+		pathToZeroClipboardJS =
+		pathToZeroClipboardSWF =
+	}
+	tagcloud {
+		# cat=plugin_pastecode/tagcloud/10; type=int+; label=Maximum amount of tags:Amount of tags to display
+		tagsMax = 0
+		# cat=plugin_pastecode/tagcloud/20; type=int+; label=Minimum tag count:Tags used lesser than this value won't be displayed
+		tagsMinCount = 0
+		# cat=plugin_pastecode/tagcloud/30; type=int+; label=Maximum size:Affects class for tags
+		maxSize = 10
+		# cat=plugin_pastecode/tagcloud/40; type=boolean; label=Reverse size:Most important tags have small numbers in CSS class
+		sizeReverse = 0
+	}
+}

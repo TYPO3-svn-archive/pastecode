@@ -1,0 +1,123 @@
+<!-- ###LISTSNIPPETS### -->
+###NEW###
+<h2>###HEADER### <span class="browser-results">(###PB_START###-###PB_END### of ###PB_TOTAL###)</span></h2>
+###SHOWALL###
+<table cellspacing="0" cellpadding="0">
+	<tr>
+		<th>###LL_NAME###</th>
+		<th>###LL_CATEGORY###</th>
+		<th>###LL_AUTHOR###</th>
+		<th>###LL_DATE###</th>
+	</tr>
+	<!-- ###OROW### -->
+	<tr class="###CLASS###">
+		<td class="snippet-title"><!--###LINK_ITEM###-->###TITLE###<!--###LINK_ITEM###--></td>
+		<td class="snippet-language">###LANGUAGE###</td>
+		<td class="snippet-author">###POSTER###</td>
+		<td class="snippet-date">###DATE###</td>
+	</tr>
+	<!-- ###OROW### -->
+</table>
+###BROWSE_LINKS###
+<div class="search"><p>###LL_SEARCH###</p><div>###SEARCH###</div></div>
+<div class="tagcloud"><p>Tags</p><div>###TAGCLOUD###</div></div>
+<div class="langcloud"><p>Languages</p><ul>###LANGUAGES###</ul></div>
+<div class="last10cloud">
+	<p>Last 10 snippets</p>
+	<p class="rss">###RSS###</p>
+	<ul>
+		<!-- ###ROW### -->
+		<li><a href="###HREF###">###TITLE###</a> <span class="language">###LANGUAGE###</span> <span class="poster">###POSTER###, ###DATE###</span></li>
+		<!-- ###ROW### -->
+	</ul>
+</div>
+<!-- ###LISTSNIPPETS### -->
+
+
+<!-- ###SINGLESNIPPET### -->
+<p><a href="###OVERVIEW_URL###">###LL_BACK###</a></p>
+###EDIT###
+<h2>###TITLE###</h2>
+###TX_RATINGS###
+<p>###LL_AUTHOR###: ###USERPIC### ###POSTER###</p>
+<p>###LL_AUTHOR_SNIPPETS###: <!--###LINK_AUTHOR_SNIPPETS###-->###COUNT_SNIPPETS###<!--###LINK_AUTHOR_SNIPPETS###--></p>
+<p>###LL_DATE###: ###DATE###</p>
+<p>###LL_CATEGORY###: ###LANGUAGE###</p>
+<p>###LL_TAGS###: ###TAGS###</p>
+<p>###LL_LINKS###: ###LINKS###</p>
+<p>###LL_DESCRIPTION###: ###DESCRIPTION###</p>
+###CODE###
+<!-- ###CLIPBOARD### -->
+<div id="d_clip_container">
+	<div id="d_clip_button" class="bu bu-mini">###LL_COPY_TO_CLIPBOARD###</div>
+	<div id="d_clip_text">###CODE_CLIPBOARD###</div>
+</div>
+<script type="text/javascript" src="###CLIPBOARD_PATH_JS###"></script>
+<script type="text/javascript">
+	ZeroClipboard.setMoviePath("###CLIPBOARD_PATH_SWF###");
+	var clip = new ZeroClipboard.Client();
+	clip.setHandCursor(true);
+	clip.glue('d_clip_text', 'd_clip_container');
+	clip.addEventListener('mouseDown', function(client) {
+		client.setText($('#d_clip_text').html());
+	}
+);
+</script>
+<!-- ###CLIPBOARD### -->
+<!-- ###SINGLESNIPPET### -->
+
+
+
+<!-- ###TEMPLATE_TAGCLOUD### -->
+<ul class="b-tag-cloud">
+	<!-- ###TAGCLOUD_TAG### -->
+	<li>###TAG###</li>
+	<!-- ###TAGCLOUD_TAG### -->
+</ul>
+<!-- ###TEMPLATE_TAGCLOUD### -->
+
+
+
+<!-- ###SEARCHSNIPPET### -->
+<h2>###LL_SEARCH_OPTIONS###</h2>
+<form action="###ACTION###" method="post">
+	<h4>###LL_LANGUAGE###</h4>
+	<select name="tx_pastecode_pi1[language]">
+		<option></option>
+		###LANGOPTIONS###
+	</select>
+	<h4>###LL_SEARCH###</h4>
+	<input type="text" name="tx_pastecode_pi1[sword]" value="###V_SEARCH###" />
+	<input type="submit" value="###LL_SEARCH_SUBMIT###" />
+	<a href="###ACTION###">###LL_SEARCH_RESET###</a>
+</form>
+<!-- ###SEARCHSNIPPET### -->
+
+
+
+<!-- ###RSSFEED### -->
+<rss version="2.0">
+	<channel>
+		<title>###SITE_TITLE###</title>
+		<link>###SITE_LINK###</link>
+		<description>###SITE_DESCRIPTION###</description>
+
+		<generator>TYPO3 - get.content.right</generator>
+		<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+		<copyright>###NEWS_COPYRIGHT###</copyright>
+		<webMaster>###NEWS_WEBMASTER###</webMaster>
+		<lastBuildDate>###NEWS_LASTBUILD###</lastBuildDate>
+
+		<!-- ###CONTENT### -->
+		<item>
+			<title>[###LANGUAGE###] ###TITLE###</title>
+			<link>###BASEURL######HREFRSS###</link>
+			<description>###DESCRIPTION###</description>
+			<category>###LANGUAGE###</category>
+			<author>###POSTER###</author>
+			<pubDate>###DATE###</pubDate>
+		</item>
+		<!-- ###CONTENT### -->
+	</channel>
+</rss>
+<!-- ###RSSFEED### -->
