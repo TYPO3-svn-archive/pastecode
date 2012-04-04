@@ -1,3 +1,9 @@
+2012-03-31 Sven Burkert <bedienung@sbtheke.de>
+	* User has to be logged in to add new snippets (spam protection)
+
+2012-02-26 Sven Burkert <bedienung@sbtheke.de>
+	* Fix security issues: #30948, #31443 and #30942
+
 2011-10-01 Sven Burkert <bedienung@sbtheke.de>
 	* Set browser title in snippet detail view
 

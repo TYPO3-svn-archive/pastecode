@@ -4,5 +4,6 @@ plugin.tx_pastecode_pi2 {
 		snippetPid = {$plugin.tx_pastecode_pi1.general.snippetPid}
 		newsnippetPid = {$plugin.tx_pastecode_pi2.general.newsnippetPid}
 		error_stdWrap.wrap = <p class="snippet-error">|</p>
+		notLoggedIn_stdWarp.wrap = <p><strong>|</strong></p>
 	}
 }

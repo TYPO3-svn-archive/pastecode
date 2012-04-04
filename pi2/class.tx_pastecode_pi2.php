@@ -58,11 +58,16 @@ class tx_pastecode_pi2 extends tslib_pibase {
 
 		$this->pastecodePi1 = t3lib_div::makeInstance('tx_pastecode_pi1');
 		#$this->pastecodePi1->init();
-		$this->storagePid = intval($this->cObj->data['pages']);
+		$this->storagePid = (int)$this->cObj->data['pages'];
 
 		$this->template = $this->cObj->fileResource($this->conf['general.']['templateFile']);
 
-		return $this->pi_wrapInBaseClass($this->newCode());
+		// user has to be logged in to add new snippets
+		if(!$GLOBALS['TSFE']->loginUser) {
+			return $this->cObj->stdWrap($this->pi_getLL('error_login'), $this->conf['general.']['notLoggedIn_stdWarp.']);
+		} else {
+			return $this->pi_wrapInBaseClass($this->newCode());
+		}
 	}
 
 
@@ -79,11 +84,11 @@ class tx_pastecode_pi2 extends tslib_pibase {
 		$marker['###HIDDEN###'] = '';
 
 		if($this->piVars['edit']) {
-			$snippet = $this->pi_getRecord('tx_pastecode_code', intval($this->piVars['edit']));
+			$snippet = $this->pi_getRecord('tx_pastecode_code', (int)$this->piVars['edit']);
 			if ($GLOBALS['TSFE']->fe_user->user['name'] != $snippet['poster']) {
 				return 'Access denied';
 			}
-			$marker['###HIDDEN###'] .= '<input type="hidden" name="tx_pastecode_pi1[edit]" value="' . intval($this->piVars['edit']) . '" />';
+			$marker['###HIDDEN###'] .= '<input type="hidden" name="tx_pastecode_pi1[edit]" value="' . (int)$this->piVars['edit'] . '" />';
 			if(!$this->piVars['title']) $this->piVars['title'] = $snippet['title'];
 			if(!$this->piVars['description']) $this->piVars['description'] = $snippet['description'];
 			if(!$this->piVars['snippet']) $this->piVars['snippet'] = $snippet['code'];
@@ -126,7 +131,7 @@ class tx_pastecode_pi2 extends tslib_pibase {
 					'title' => $this->piVars['title'],
 					'description' => $this->piVars['description'],
 					'language' => $this->piVars['language'],
-					'problem' => intval($this->piVars['problem']),
+					'problem' => (int)$this->piVars['problem'],
 					'code' => $this->piVars['snippet'],
 					'tags' => implode(',', t3lib_div::trimexplode(',', $this->piVars['tags'], 1)),
 					'poster' => $this->piVars['poster'],
@@ -136,7 +141,7 @@ class tx_pastecode_pi2 extends tslib_pibase {
 				if ($this->piVars['edit']) {
 					$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 						'tx_pastecode_code',
-						'uid=' . intval($this->piVars['edit']),
+						'uid=' . (int)$this->piVars['edit'],
 						$fields_values,
 						$no_quote_fields = FALSE
 					);
@@ -165,7 +170,7 @@ class tx_pastecode_pi2 extends tslib_pibase {
 		$marker['###SNIPPET###'] = htmlspecialchars($this->piVars['snippet']);
 		$marker['###LINKS###'] = htmlspecialchars($this->piVars['links']);
 		$marker['###TAGS###'] = htmlspecialchars($this->piVars['tags']);
-		$marker['###PROBLEM_CHECKED###'] = intval($this->piVars['problem']) ? ' checked="checked"' : '';
+		$marker['###PROBLEM_CHECKED###'] = (int)$this->piVars['problem'] ? ' checked="checked"' : '';
 		$marker['###LANGOPTIONS###'] = $this->pastecodePi1->languageSelect($this);
 		$marker['###SELTAGS###'] = $this->getTags();
 

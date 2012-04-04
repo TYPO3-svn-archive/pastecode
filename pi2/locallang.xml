@@ -24,6 +24,7 @@
 			<label index="back">Back to overview</label>
 			<label index="error_length">&lt;b&gt;Text too short&lt;/b&gt;&lt;br /&gt;The value you typed in for the title or the snippet code is too short. Please provide more text.</label>
 			<label index="error_captcha">&lt;b&gt;Captcha error&lt;/b&gt;&lt;br /&gt;The code you typed in was wrong.</label>
+			<label index="error_login">Please login to add a new snippet.</label>
 		</languageKey>
 	</data>
 </T3locallang>

@@ -89,7 +89,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 		}
 
 		$this->pastecodePi2 = t3lib_div::makeInstance('tx_pastecode_pi2');
-		$this->storagePid = intval($this->cObj->data['pages']);
+		$this->storagePid = (int)$this->cObj->data['pages'];
 		$this->pid = $GLOBALS['TSFE']->id;
 		$this->type = $GLOBALS['TSFE']->type;
 
@@ -101,8 +101,8 @@ class tx_pastecode_pi1 extends tslib_pibase {
 
 		// RSS
 		if ($this->type == 112) {
-			$this->pid = intval($this->conf['pid']);
-			$this->storagePid = intval($this->conf['storagePid']);
+			$this->pid = (int)$this->conf['pid'];
+			$this->storagePid = (int)$this->conf['storagePid'];
 			return $this->rssView();
 		}
 		switch($this->conf['general.']['displayMode']) {
@@ -156,7 +156,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 	}
 
 	function singleView($id) {
-		if(intval($id) == 0) {
+		if((int)$id == 0) {
 			return '';
 		}
 
@@ -166,7 +166,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'*',
 			'tx_pastecode_code',
-			'uid = ' . intval($id) . $this->cObj->enableFields('tx_pastecode_code')
+			'uid = ' . (int)$id . $this->cObj->enableFields('tx_pastecode_code')
 		);
 		$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 
@@ -211,7 +211,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 			$links = t3lib_div::trimExplode(',', $row['links']);
 			foreach ($links as $link) {
 				$pre = substr($link, 0, 1);
-				$number = intval(substr($link, 1));
+				$number = (int)substr($link, 1);
 				switch ($pre) {
 					case 'n' :
 						#$nntpAPI = t3lib_div::makeInstance('tx_nntpreader_api');
@@ -228,7 +228,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 			$marker['###LINKS###'] = implode(', ', $t);
 		}
 
-		$marker['###TX_RATINGS###'] = $this->ratings ? $this->ratings->getRatingDisplay('tx_pastecode_pi1' . intval($id)) : '';
+		$marker['###TX_RATINGS###'] = $this->ratings ? $this->ratings->getRatingDisplay('tx_pastecode_pi1' . (int)$id) : '';
 		// language keys
 		$marker += $this->prepareLLArray('EXT:pastecode/pi1/locallang.xml', $this);
 
@@ -318,7 +318,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 		} elseif ($this->conf['my_snippets'] || ($this->piVars['my_snippets'] && $GLOBALS['TSFE']->fe_user->user['uid'])) {
 			$marker['###HEADER###'] = 'My snippets';
 			$order = 'crdate';
-			$addWhere .= ' AND poster="' . $GLOBALS['TSFE']->fe_user->user['name'] . '"';
+			$addWhere .= ' AND poster="' . $GLOBALS['TYPO3_DB']->quoteStr($GLOBALS['TSFE']->fe_user->user['name'], 'tx_pastecode_code') . '"';
 		} else {
 			$marker['###HEADER###'] = 'Snippets';
 		}
@@ -343,14 +343,14 @@ class tx_pastecode_pi1 extends tslib_pibase {
 			'pid = ' . $this->storagePid . $addWhere . $this->cObj->enableFields('tx_pastecode_code'),
 			'',
 			$order,
-			intval($this->piVars['page']) * $this->conf['snippets.']['limit'] . ',' . $this->conf['snippets.']['limit']
+			(int)$this->piVars['page'] * $this->conf['snippets.']['limit'] . ',' . $this->conf['snippets.']['limit']
 		);
 
 		// render pagebrowser
 		$marker['###BROWSE_LINKS###'] = $this->getListGetPageBrowser(ceil($count/$this->conf['snippets.']['limit']));
 
 		$marker['###PB_TOTAL###'] = $count;
-		$marker['###PB_START###'] = intval($this->piVars['page']) * $this->conf['snippets.']['limit'] + 1;
+		$marker['###PB_START###'] = (int)$this->piVars['page'] * $this->conf['snippets.']['limit'] + 1;
 		$marker['###PB_END###'] = intval($marker['###PB_START###'] + $this->conf['snippets.']['limit']) < $count
 				? intval($marker['###PB_START###'] + $this->conf['snippets.']['limit']) : $count;
 
@@ -363,8 +363,8 @@ class tx_pastecode_pi1 extends tslib_pibase {
 			$marker['###DATE###'] = strftime($GLOBALS['TSFE']->tmpl->setup['languagesetting.']['dateFormat'], $row['crdate']);
 
 			$marker['###LANGUAGE###'] = $this->getLanguageLink($row['language']);
-			$rating = $this->ratings ? $this->ratings->getRatingArray('tx_pastecode_pi1' . intval($row['uid'])) : array();
-			$ratetxt = intval($rating['vote_count']) == 0 ? '-' : number_format($rating['rating'] / $rating['vote_count'], 2);
+			$rating = $this->ratings ? $this->ratings->getRatingArray('tx_pastecode_pi1' . (int)$row['uid']) : array();
+			$ratetxt = (int)$rating['vote_count'] == 0 ? '-' : number_format($rating['rating'] / $rating['vote_count'], 2);
 			$marker['###TX_RATINGS###'] = $this->ratings ? $ratetxt : '';
 
 			$this->markerHook($marker, $row);
@@ -440,7 +440,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 
 		// output tag only, if it is used more than x times
 		foreach($t as $tag => $count) {
-			if($count < intval($this->conf['tagcloud.']['tagsMinCount'])) {
+			if($count < (int)$this->conf['tagcloud.']['tagsMinCount']) {
 				unset($t[$tag]);
 			}
 		}
@@ -487,7 +487,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 			'pid = ' . $this->storagePid . $this->cObj->enableFields('tx_pastecode_code'),
 			'',
 			'crdate desc',
-			intval($count)
+			(int)$count
 		);
 
 		$rows = '';
@@ -633,7 +633,7 @@ class tx_pastecode_pi1 extends tslib_pibase {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'count(*)',
 			'tx_pastecode_code',
-			'pid = ' . $this->storagePid . ' AND poster = "' . $user . '"' . $this->cObj->enableFields('tx_pastecode_code')
+			'pid = ' . $this->storagePid . ' AND poster = "' . $GLOBALS['TYPO3_DB']->quoteStr($user, 'tx_pastecode_code') . '"' . $this->cObj->enableFields('tx_pastecode_code')
 		);
 		$row = $GLOBALS['TYPO3_DB']->sql_fetch_row($res);
 		return $row[0];
